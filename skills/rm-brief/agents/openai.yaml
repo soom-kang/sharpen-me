@@ -1,6 +1,0 @@
-interface:
-  display_name: "Project Briefing"
-  short_description: "Rebuild lost project context from evidence"
-  default_prompt: "Use $rm-brief to report current outcomes and still-open blockers using the baseline only for new changes."
-policy:
-  allow_implicit_invocation: true

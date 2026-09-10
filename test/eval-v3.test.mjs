@@ -14,8 +14,8 @@ const result = text => ({ stdout: JSON.stringify({type:'item.completed',item:{ty
 const read = text => JSON.stringify({type:'item.completed',item:{type:'command_execution',command:`cat .agents/skills/${normal.skill}/SKILL.md`,exit_code:0,aggregated_output:text}})+'\n';
 const identity = item => ({schemaVersion:3,id:idOf(item),provider:item.provider,version:item.version,case:item.testCase.id,repeat:item.repeat,inputHash:'frozen'});
 
-test('frozen 48-case expectations retain their pre-edit hash and category balance', () => {
-  assert.equal(sha256(JSON.stringify(cases)), 'c6d61b693c93ffdfca13937f79fefa2a402866bcbd3d86e602a17449b593d6dd');
+test('renamed 48-case expectations retain their approved hash and category balance', () => {
+  assert.equal(sha256(JSON.stringify(cases)), '8eccbb25a9d41cabc84d61fecc8bb03d549c93366b0333f39479d639b8511a77');
   assert.equal(matrix.length,288);
   assert.equal(cases.filter(c=>c.language==='ko').length,8);
   assert.equal(cases.filter(c=>c.language==='en').length,8);
@@ -34,7 +34,7 @@ test('frozen 48-case expectations retain their pre-edit hash and category balanc
 test('implicit task prompts contain no skill name, installation path or answer key',()=>{
   for(const c of cases.filter(c=>c.invocation==='implicit')) for(const provider of ['codex','claude']) {
     const prompt=taskPrompt(provider,c);
-    assert.doesNotMatch(prompt,/rm-(scope|review|challenge|assess|refine|brief|dedup)|\.agents|\.claude|expectedSkills|mustNot/);
+    assert.doesNotMatch(prompt,/sharpen-(clarify|review|challenge|assess|refine|cold-review|brief|dedupe)|\.agents|\.claude|expectedSkills|mustNot/);
   }
 });
 
@@ -111,7 +111,7 @@ test('scheduler enforces per-provider serial execution and no call after isolati
 
 const image=`sha256:${'a'.repeat(64)}`;
 test('Docker boundary pins image, nonroot, read-only mount, no network and no elevated Node permission',()=>{
-  const command=containerCommand(image,'/tmp/fixture',['node','--test','check.mjs'],'rm-eval-test');
+  const command=containerCommand(image,'/tmp/fixture',['node','--test','check.mjs'],'sharpen-eval-test');
   for(const arg of ['none','--read-only','65534:65534','ALL','no-new-privileges','--memory','--cpus','--pids-limit','--test-isolation=none'])assert.ok(command.includes(arg));
   assert.ok(command.includes('type=bind,src=/tmp/fixture,dst=/fixture,readonly'));
   assert.ok(!command.some(arg=>/allow-(fs-write|child-process|worker)|docker.sock/.test(arg)));
@@ -144,7 +144,7 @@ test('changed-file collection never follows an unsafe parent outside the fixture
   const {mkdtemp,mkdir,writeFile,symlink,rm,realpath}=await import('node:fs/promises');
   const os=await import('node:os'),path=await import('node:path');
   const {readChangedFiles}=await import('../scripts/eval-v3.mjs');
-  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),'rm-changed-files-')));
+  const root=await realpath(await mkdtemp(path.join(os.tmpdir(),'sharpen-changed-files-')));
   t.after(()=>rm(root,{recursive:true}));
   const fixture=path.join(root,'fixture');await mkdir(fixture);
   await mkdir(path.join(root,'outside'));await writeFile(path.join(root,'outside','note.txt'),'not fixture data');
@@ -201,5 +201,5 @@ test('a complete selected-provider evaluation does not certify a deferred provid
   const grades=records.map(r=>({blindId:blindId(r),evidenceHash:r.evidenceHash,semantic:'PASS',rationale:'Synthetic complete evidence.',missingFacts:[],unsupportedClaims:[],scopeViolations:[]}));
   const summary=summarize({schemaVersion:3,config:single,inputHash:'frozen'},records,subset,grades);
   assert.equal(summary.evaluationPassed,true);assert.equal(summary.releaseReady,false);
-  assert.deepEqual(summary.deferredProviders,['claude']);assert.equal(summary.cumulativeAttemptedCalls,4);
+  assert.deepEqual(summary.deferredProviders,['claude']);assert.equal(summary.cumulativeAttemptedCalls,292);
 });

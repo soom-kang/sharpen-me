@@ -1,10 +1,10 @@
 export const catalog = [
-  'rm-scope',
-  'rm-review',
-  'rm-challenge',
-  'rm-assess',
-  'rm-refine',
-  'rm-review-fresh',
-  'rm-brief',
-  'rm-dedup',
+  'sharpen-clarify',
+  'sharpen-review',
+  'sharpen-challenge',
+  'sharpen-assess',
+  'sharpen-refine',
+  'sharpen-cold-review',
+  'sharpen-brief',
+  'sharpen-dedupe',
 ].map(name => ({ name }));

@@ -11,6 +11,7 @@ import { dockerPreflight, dockerCheck } from './eval-docker.mjs';
 import { observeV3, providerCommand, taskPrompt } from './eval-v3-observation.mjs';
 import { schemaVersion, baseline, selectedProviders, idOf, matrixFor, parseArgs, assertV3, assertSame, seal, validateRecords, dispatchMatrix } from './eval-v3-contract.mjs';
 import { summarize, blindPacket } from './eval-v3-summary.mjs';
+import { readBaseline, validateBaselineSnapshot, validateRunIdentity } from './eval-baseline.mjs';
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
 async function writeJSON(file, value) {
@@ -63,37 +64,39 @@ export async function versions(providers, execute = run) {
 }
 async function preflight(providers) {
   if (process.version !== 'v24.20.0') throw new Error('Evaluation host must use Node 24.20.0');
-  const probe = await realpath(await mkdtemp(path.join(os.tmpdir(), 'rm-isolation-')));
+  const probe = await realpath(await mkdtemp(path.join(os.tmpdir(), 'sharpen-isolation-')));
   try {
     await chmod(probe, 0o755);
     await writeFile(path.join(probe, 'probe.txt'), 'fixture');
     return { docker: await dockerPreflight(probe), cli: await versions(providers), node: process.version };
   } finally { await rm(probe, { recursive: true }); }
 }
-async function freeze(directory) {
+export async function freeze(directory, prepared) {
   const frozen = path.join(directory, 'frozen');
-  await mkdir(path.join(frozen, 'before'), { recursive: true });
-  const tree = await run(['git', 'ls-tree', '-r', '--name-only', baseline, '--', 'skills'], { cwd: root });
-  if (tree.code !== 0) throw new Error('BASELINE_UNAVAILABLE');
-  for (const file of tree.stdout.trim().split('\n')) {
-    if (!file.startsWith('skills/')) throw new Error('Unexpected baseline file');
-    const bytes = await run(['git', 'show', `${baseline}:${file}`], { cwd: root });
-    if (bytes.code !== 0 || bytes.overflow) throw new Error('BASELINE_EXTRACTION_FAILED');
-    const target = contained(path.join(frozen, 'before'), file);
-    await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, bytes.stdout);
+  for (const [version, files] of [['original', prepared.original], ['before', prepared.normalized]]) {
+    for (const [file, bytes] of Object.entries(files)) {
+      const target = contained(path.join(frozen, version, 'skills'), file);
+      await mkdir(path.dirname(target), { recursive: true });
+      await writeFile(target, bytes);
+    }
   }
   await cp(path.join(root, 'skills'), path.join(frozen, 'after', 'skills'), { recursive: true });
   for (const folder of ['scripts', 'evals']) await cp(path.join(root, folder), path.join(frozen, folder), { recursive: true });
   await writeJSON(path.join(frozen, 'cases.json'), cases);
+  await validateBaselineSnapshot(frozen, prepared.provenance);
   return sourceSnapshot(frozen);
 }
-async function loadArchive(directory, matrix, current) {
+async function loadArchive(directory, matrix, current, prepared) {
   const location = await realpath(path.resolve(root, directory));
   const results = await realpath(path.join(root, 'eval-results'));
   if (!location.startsWith(`${results}${path.sep}`) || !(await lstat(path.resolve(root, directory))).isDirectory()) throw new Error('Resume requires a local archive directory');
   const metadata = await json(path.join(location, 'run.json'));
   assertV3(metadata);
   selectedProviders(metadata.config);
+  validateRunIdentity(metadata);
+  assertSame(metadata.baselineNormalization, prepared.provenance);
+  await validateBaselineSnapshot(path.join(location, 'frozen'), metadata.baselineNormalization);
+  assertSame(metadata.config, await json(path.join(root, 'evals/config.json')));
   assertSame(metadata.workingInputs, current);
   assertSame(metadata.frozenHashes, await sourceSnapshot(path.join(location, 'frozen')));
   assertSame(metadata.matrix, matrix.map(item => ({ id: idOf(item), provider: item.provider, version: item.version, case: item.testCase.id, repeat: item.repeat })));
@@ -113,11 +116,12 @@ export async function main(args = process.argv.slice(2)) {
     const parent = await json(path.resolve(root, options.resume, 'run.json'));
     assertV3(parent); selectedProviders(parent.config);
   }
+  const prepared = await readBaseline(root);
   const current = options.dryRun && !options.resume ? null : await inventory();
-  const archive = options.resume ? await loadArchive(options.resume, matrix, current) : null;
+  const archive = options.resume ? await loadArchive(options.resume, matrix, current, prepared) : null;
   if (options.dryRun) {
     const calls = matrix.filter(item => !archive?.records.get(idOf(item))?.providerCalled).map(item => ({ id: idOf(item), provider: item.provider, version: item.version, case: item.testCase.id, repeat: item.repeat }));
-    console.log(JSON.stringify({ schemaVersion, baseline, config, plannedCalls: matrix.length, plannedNewCalls: calls.length, historicalAttemptedCalls: config.historicalAttemptedCalls, maximumCumulativeCalls: config.historicalAttemptedCalls + config.maxCalls, calls }, null, 2)); return;
+    console.log(JSON.stringify({ schemaVersion, baseline, baselineNormalization: prepared.provenance, config, plannedCalls: matrix.length, plannedNewCalls: calls.length, historicalAttemptedCalls: config.historicalAttemptedCalls, maximumCumulativeCalls: config.historicalAttemptedCalls + config.maxCalls, calls }, null, 2)); return;
   }
   // No provider inference dispatch is permitted until Docker proves isolation.
   const environment = await preflight(selectedProviders(config));
@@ -126,14 +130,15 @@ export async function main(args = process.argv.slice(2)) {
   let metadata = archive?.metadata;
   if (!metadata) {
     await mkdir(path.join(directory, 'records'), { recursive: true });
-    const frozenHashes = await freeze(directory);
+    const frozenHashes = await freeze(directory, prepared);
     assertSame(current, await inventory());
-    const inputs = { baseline, config, workingInputs: current, frozenHashes, environment, casesHash: sha256(JSON.stringify(cases)) };
+    const inputs = { baseline, baselineNormalization: prepared.provenance, config, workingInputs: current, frozenHashes, environment, casesHash: sha256(JSON.stringify(cases)) };
     metadata = { schemaVersion, startedAt: new Date().toISOString(), ...inputs, inputHash: sha256(JSON.stringify(inputs)),
       matrix: matrix.map(item => ({ id: idOf(item), provider: item.provider, version: item.version, case: item.testCase.id, repeat: item.repeat })) };
     await writeJSON(path.join(directory, 'run.json'), metadata);
   }
   const assertInputs = async () => {
+    validateRunIdentity(metadata);
     assertSame(metadata.workingInputs, await inventory());
     assertSame(metadata.environment.cli, await versions(selectedProviders(config)));
     assertSame(metadata.frozenHashes, await sourceSnapshot(path.join(directory, 'frozen')));
@@ -165,7 +170,7 @@ export async function main(args = process.argv.slice(2)) {
   }
   async function evaluate(item) {
     const { provider, testCase, version } = item;
-    const cwd = await realpath(await mkdtemp(path.join(os.tmpdir(), 'refactor-me-eval-')));
+    const cwd = await realpath(await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-eval-')));
     await chmod(cwd, 0o755);
     const observation = { providerCalled: false };
     try {

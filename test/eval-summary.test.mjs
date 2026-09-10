@@ -16,7 +16,7 @@ const sampleId = 'codex--scope-repository-contract';
 const editId = 'claude--refine-receipt-shared-calculation';
 
 async function fixture(t) {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-summary-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-summary-'));
   t.after(() => rm(root, { recursive: true }));
   const directory = path.join(root, 'eval-results', 'synthetic');
   await mkdir(path.join(root, 'evals'), { recursive: true });
@@ -185,13 +185,13 @@ test('grades bind output, actual changed files, checks, and source inputs but no
     assert.ok(summary.gradeValidation.errors.some(error => error === `Grade evidence hash mismatch: ${editId}`));
   }
   const changedRun = structuredClone(f.run);
-  changedRun.skillHashes['rm-refine'].NOTICE = sha256('changed attribution');
+  changedRun.skillHashes['sharpen-refine'].NOTICE = sha256('changed attribution');
   assert.notEqual(observationHash(original, changedRun), hash);
 });
 
 test('current fixture, configuration and whole skill sources must match run inputs', async t => {
   const f = await fixture(t);
-  const files = ['evals/cases.mjs', 'evals/config.json', 'skills/rm-review/agents/openai.yaml', 'skills/rm-review/NOTICE'];
+  const files = ['evals/cases.mjs', 'evals/config.json', 'skills/sharpen-review/agents/openai.yaml', 'skills/sharpen-review/NOTICE'];
   for (const relative of files) {
     const file = path.join(f.root, relative), original = await readFile(file);
     await writeFile(file, relative.endsWith('.json') ? JSON.stringify({ changed: true }) : 'Changed after evaluation');
@@ -200,25 +200,25 @@ test('current fixture, configuration and whole skill sources must match run inpu
     assert.equal(summary.inputValidation.valid, false, relative);
     await writeFile(file, original);
   }
-  await mkdir(path.join(f.root, 'skills/rm-review/references'));
-  await writeFile(path.join(f.root, 'skills/rm-review/references/new.md'), 'New required resource');
+  await mkdir(path.join(f.root, 'skills/sharpen-review/references'));
+  await writeFile(path.join(f.root, 'skills/sharpen-review/references/new.md'), 'New required resource');
   assert.equal((await f.summary()).inputValidation.checks.currentSkillSources, false);
 });
 
 test('tampered or symlinked archived sources cannot be trusted through declared hashes', async t => {
   const f = await fixture(t);
-  const frozen = path.join(f.directory, 'skills/rm-review/NOTICE');
+  const frozen = path.join(f.directory, 'skills/sharpen-review/NOTICE');
   const original = await readFile(frozen);
   await writeFile(frozen, 'Tampered frozen attribution');
   assert.equal((await f.summary()).inputValidation.checks.skillSnapshot, false);
-  await rm(frozen); await symlink(path.join(f.root, 'skills/rm-review/NOTICE'), frozen);
+  await rm(frozen); await symlink(path.join(f.root, 'skills/sharpen-review/NOTICE'), frozen);
   assert.equal((await f.summary()).inputValidation.checks.skillSnapshot, false);
   await rm(frozen); await writeFile(frozen, original);
   assert.equal((await f.summary()).inputValidation.checks.skillSnapshot, true);
 });
 
 test('whole-source snapshots include a prototype-named file as an ordinary own property', async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-source-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-source-'));
   t.after(() => rm(directory, { recursive: true }));
   await writeFile(path.join(directory, '__proto__'), 'Must be hashed');
   const hashes = await sourceSnapshot(directory);
@@ -233,7 +233,7 @@ test('observation input identity, completed dispatch and exact required checks a
   const mutations = [
     r => { r.fixtureHash = sha256('another fixture'); },
     r => { r.model = { model: 'another-model', effort: 'high' }; },
-    r => { r.skill = 'rm-scope'; },
+    r => { r.skill = 'sharpen-clarify'; },
     r => { r.providerCalled = false; },
     r => { r.status = 'UNKNOWN'; },
     r => { delete r.baselineChecks; },
@@ -271,7 +271,7 @@ async function recheckFixture(t) {
   await writeFile(path.join(archive, 'run.json'), parentBytes);
   await saveJson(path.join(archive, 'summary.json'), { schemaVersion: 2, attemptedCalls: 32, cumulativeAttemptedCalls: 32 });
   for (const record of f.observations.values()) await saveJson(path.join(archive, `${record.id}.json`), record);
-  const name = 'rm-review';
+  const name = 'sharpen-review';
   for (const dir of [path.join(f.root, 'skills', name), path.join(f.directory, 'skills', name)]) {
     await writeFile(path.join(dir, 'SKILL.md'), 'Revised synthetic skill');
   }
@@ -295,7 +295,7 @@ test('explicit recheck preserves metadata and inherited grade hashes with exact 
   const summary = await f.summary();
   assert.equal(summary.releaseReady, true, JSON.stringify(summary.releaseBlockers));
   assert.equal(summary.explicitRecheck, true);
-  assert.deepEqual(summary.recheckedSkills, ['rm-review']);
+  assert.deepEqual(summary.recheckedSkills, ['sharpen-review']);
   assert.deepEqual(summary.sourceChanges, f.run.sourceChanges);
   assert.equal(summary.attemptedCalls, 4);
   assert.equal(summary.inheritedRecords, 28);
@@ -309,7 +309,7 @@ test('recheck bookkeeping, selected sources and prior attempt counts cannot be f
   assert.equal((await f.summary()).runValidation.valid, false);
   record.attemptedThisRun = false; f.run.priorAttemptedCalls = 31; await f.save();
   assert.equal((await f.summary()).runValidation.valid, false);
-  f.run.priorAttemptedCalls = 32; f.run.sourceChanges['rm-review'].changedFiles = []; await f.save();
+  f.run.priorAttemptedCalls = 32; f.run.sourceChanges['sharpen-review'].changedFiles = []; await f.save();
   assert.equal((await f.summary()).runValidation.valid, false);
 });
 
@@ -339,7 +339,7 @@ test('a current run cannot aggregate older observations or parent provenance', a
 });
 
 test('CLI rejects unreadable metadata without overwriting the archive', async t => {
-  const directory = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-summary-cli-'));
+  const directory = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-summary-cli-'));
   t.after(() => rm(directory, { recursive: true }));
   await writeFile(path.join(directory, 'run.json'), 'not JSON');
   await saveJson(path.join(directory, 'reviewed-summary.json'), { releaseReady: true });

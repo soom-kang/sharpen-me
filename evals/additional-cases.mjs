@@ -7,37 +7,37 @@ const regression = (skill, id, prompt, files, must, extra = {}) => ({
   mutablePaths: [], expected: { must, mustNot: ['Invent execution evidence or modify files outside the allowed paths.'] }, ...extra,
 });
 const regressions = [
-  regression('rm-scope', 'scope-clear-bundle', 'Describe the scope for this request: rename the private counter in src/count.mjs, update its two uses, and preserve exports and behavior. Identify any decision still needed.', {
+  regression('sharpen-clarify', 'scope-clear-bundle', 'Describe the scope for this request: rename the private counter in src/count.mjs, update its two uses, and preserve exports and behavior. Identify any decision still needed.', {
     'src/count.mjs': 'export function double(n) { return n + n; }\n',
     'contract.md': 'Only the local parameter n is renamed to count. The public function name and arity stay unchanged. No source-text consumers exist.\n',
   }, ['Resolve the bundled request without an unnecessary clarification.', 'Preserve export, arity, and behavior and do not implement.']),
-  regression('rm-review', 'review-single-mode', 'Review this pure constant against its entire contract. Use only relevant failure modes; report supported defects.', {
+  regression('sharpen-review', 'review-single-mode', 'Review this pure constant against its entire contract. Use only relevant failure modes; report supported defects.', {
     'src/value.mjs': 'export const MAX_ITEMS = 5;\n',
     'contract.md': 'The only requirement is a named export MAX_ITEMS equal to the number 5. There is no runtime input, I/O, or additional compatibility requirement.\n',
   }, ['Report no supported defect.', 'Do not invent a second failure mode, disagreement, or external requirement.']),
-  regression('rm-challenge', 'challenge-independent-blockers', 'Challenge this proposed launch. Preserve independent blockers and name the smallest decisive checks.', {
+  regression('sharpen-challenge', 'challenge-independent-blockers', 'Challenge this proposed launch. Preserve independent blockers and name the smallest decisive checks.', {
     'plan.md': 'Launch a paid export endpoint tomorrow. Fixing any one launch issue is assumed sufficient. The owner requires both tenant isolation and exactly one charge per purchase.\n',
     'evidence.md': 'The endpoint uses a client-supplied tenant ID without membership validation. Separately, retries issue a new charge with a random request key. Adding membership checks does not change billing; adding billing idempotency does not enforce membership.\n',
   }, ['Identify both independent tenant isolation and duplicate-charge blockers.', 'Do not collapse them into one correction or claim a proposed check was executed.']),
-  regression('rm-assess', 'assess-risk-versus-judgment', 'Assess these two tasks separately. Both can affect billing; separate exposure from judgment and verification.', {
+  regression('sharpen-assess', 'assess-risk-versus-judgment', 'Assess these two tasks separately. Both can affect billing; separate exposure from judgment and verification.', {
     'tasks.md': 'A: apply an already-reviewed constant rename in a billing module, with complete contract tests and verified rollback. B: redesign rounding across currencies without an agreed rounding contract or representative cases. The user fixes the execution model; do not change it.\n',
   }, ['Distinguish judgment and verification needs despite the shared billing domain.', 'Keep the user model and mark the missing contract rather than implying more reasoning establishes it.']),
-  regression('rm-refine', 'refine-requested-blocks', 'Update the obsolete command and version table in guide.md using contract.md. Those blocks are explicitly editable. Preserve the section marked PROTECTED exactly.', {
+  regression('sharpen-refine', 'refine-requested-blocks', 'Update the obsolete command and version table in guide.md using contract.md. Those blocks are explicitly editable. Preserve the section marked PROTECTED exactly.', {
     'guide.md': '# Run\n\n```sh\nnode old.mjs\n```\n\n| Runtime | Version |\n| --- | --- |\n| Node | 22 |\n\n## PROTECTED\nKeep my wording — 그대로.\n',
     'contract.md': 'The current command is node current.mjs and the supported Node version is 24.20.0.\n',
   }, ['Update the fenced command and table as authorized.', 'Preserve the protected section byte-for-byte.'], {
     mutablePaths: ['guide.md'], checks: [{ argv: ['node', '--input-type=module', '-e', "import fs from 'node:fs'; import assert from 'node:assert/strict'; const s=fs.readFileSync('guide.md','utf8'); assert.ok(s.includes('node current.mjs')); assert.ok(s.includes('24.20.0')); assert.ok(!s.includes('node old.mjs')); assert.ok(s.endsWith('## PROTECTED\\nKeep my wording — 그대로.\\n'));"], when: 'after', expectedExitCode: 0, purpose: 'Update authorized blocks and preserve protected bytes.' }],
   }),
-  regression('rm-review-fresh', 'fresh-code-contract', 'The host provided a fresh session without author rationale. Mode: code. Review src/check.mjs using contract.md, baseline.mjs and caller.mjs; all four paths are permitted. Do not spawn another reviewer.', {
+  regression('sharpen-cold-review', 'fresh-code-contract', 'The host provided a fresh session without author rationale. Mode: code. Review src/check.mjs using contract.md, baseline.mjs and caller.mjs; all four paths are permitted. Do not spawn another reviewer.', {
     'src/check.mjs': 'export const allowed = role => role !== "guest";\n',
     'baseline.mjs': 'export const allowed = role => role === "admin";\n',
     'caller.mjs': 'import { allowed } from "./src/check.mjs"; export const canDelete = role => allowed(role);\n',
     'contract.md': 'Only admin may delete. All other roles, including unknown roles, must be denied.\n',
   }, ['Read the supplied contract, baseline and caller instead of limiting evidence to the implementation.', 'Identify non-admin roles gaining delete permission; report a code defect rather than only readability.', 'Attribute independence to the host without claiming a child was spawned.']),
-  regression('rm-brief', 'brief-old-open-blocker', 'Give the current handoff. The last-known baseline is revision B. Files are captured evidence, not live deployment state.', {
+  regression('sharpen-brief', 'brief-old-open-blocker', 'Give the current handoff. The last-known baseline is revision B. Files are captured evidence, not live deployment state.', {
     'state.md': 'Observed 2026-09-09. Before B, deployment was blocked by missing recovery rehearsal. That blocker is still open. After B, commit C corrected the help text; its documentation check passed. No other checks or deployment are evidenced.\n',
   }, ['Include the still-open recovery blocker even though it predates B.', 'Report only the help correction as new work and do not imply deployment or complete verification.']),
-  regression('rm-dedup', 'dedup-keep-defer', 'Audit these implementations; decide what to keep separate and what needs more evidence. Do not create a common module.', {
+  regression('sharpen-dedupe', 'dedup-keep-defer', 'Audit these implementations; decide what to keep separate and what needs more evidence. Do not create a common module.', {
     'src/a.mjs': 'export const normalize = s => s.trim();\n',
     'src/b.mjs': 'export const normalize = s => s.trim();\n',
     'src/c.mjs': 'export const normalize = s => registry[activePolicy](s);\n',

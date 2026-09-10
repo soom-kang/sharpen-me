@@ -8,7 +8,7 @@ import {
   matrixId, sourceSnapshot, sha256, inheritGrades, selectResumeRecords,
 } from '../scripts/eval-resume.mjs';
 
-const catalog = Array.from({ length: 8 }, (_, index) => ({ name: `rm-skill-${index}` }));
+const catalog = Array.from({ length: 8 }, (_, index) => ({ name: `sharpen-skill-${index}` }));
 const matrix = ['codex', 'claude'].flatMap(provider => catalog.flatMap(({ name }) =>
   ['normal', 'edge'].map(kind => ({ provider, testCase: { id: `${name}-${kind}`, skill: name } }))));
 const records = matrix.map((item, index) => ({ schemaVersion: 2, id: matrixId(item), provider: item.provider,
@@ -24,13 +24,13 @@ function changedInput(selected) {
 }
 
 test('recheck is explicit, requires unique selected names, and cannot be combined with quota resume', () => {
-  assert.deepEqual(parseEvaluationArgs(['--recheck', 'eval-results/prior', '--skill', 'rm-review', '--skill', 'rm-brief', '--dry-run']), {
-    dryRun: true, resumeDirectory: null, recheckDirectory: 'eval-results/prior', skills: ['rm-review', 'rm-brief'],
+  assert.deepEqual(parseEvaluationArgs(['--recheck', 'eval-results/prior', '--skill', 'sharpen-review', '--skill', 'sharpen-brief', '--dry-run']), {
+    dryRun: true, resumeDirectory: null, recheckDirectory: 'eval-results/prior', skills: ['sharpen-review', 'sharpen-brief'],
   });
   for (const args of [
-    ['--recheck', 'prior'], ['--skill', 'rm-review'],
-    ['--resume', 'prior', '--recheck', 'prior', '--skill', 'rm-review'],
-    ['--recheck', 'prior', '--skill', 'rm-review', '--skill', 'rm-review'],
+    ['--recheck', 'prior'], ['--skill', 'sharpen-review'],
+    ['--resume', 'prior', '--recheck', 'prior', '--skill', 'sharpen-review'],
+    ['--recheck', 'prior', '--skill', 'sharpen-review', '--skill', 'sharpen-review'],
     ['--recheck', 'prior', '--skill', '../escape'],
   ]) assert.throws(() => parseEvaluationArgs(args), /Usage/);
 });
@@ -53,27 +53,27 @@ test('four changed skills select exactly 16 cases and inherit only unselected sk
 });
 
 test('each explicitly selected skill must differ and no unselected source may drift', () => {
-  assert.throws(() => assertRecheckInputs(parent, changedInput([]), ['rm-skill-0'], catalog), /has not changed/);
-  assert.throws(() => assertRecheckInputs(parent, changedInput(['rm-skill-0', 'rm-skill-1']), ['rm-skill-0'], catalog), /Unselected skill changed/);
+  assert.throws(() => assertRecheckInputs(parent, changedInput([]), ['sharpen-skill-0'], catalog), /has not changed/);
+  assert.throws(() => assertRecheckInputs(parent, changedInput(['sharpen-skill-0', 'sharpen-skill-1']), ['sharpen-skill-0'], catalog), /Unselected skill changed/);
   assert.throws(() => assertRecheckInputs(parent, changedInput([]), ['unknown'], catalog), /catalog skill names/);
-  assert.throws(() => assertRecheckInputs(parent, changedInput(['rm-skill-0']), ['rm-skill-0', 'rm-skill-0'], catalog), /unique/);
+  assert.throws(() => assertRecheckInputs(parent, changedInput(['sharpen-skill-0']), ['sharpen-skill-0', 'sharpen-skill-0'], catalog), /unique/);
 });
 
 test('recheck does not waive frozen fixture, model or archived-source checks', () => {
   for (const field of ['fixtureHash', 'config', 'skillHashes']) {
-    const input = changedInput(['rm-skill-0']);
+    const input = changedInput(['sharpen-skill-0']);
     input[field] = 'drift';
-    assert.throws(() => assertRecheckInputs(parent, input, ['rm-skill-0'], catalog), new RegExp(field + ' mismatch'));
+    assert.throws(() => assertRecheckInputs(parent, input, ['sharpen-skill-0'], catalog), new RegExp(field + ' mismatch'));
   }
 });
 
 test('changed file evidence includes additions and removals with both before and after hashes', () => {
   const before = structuredClone(parent);
-  before.skillHashes['rm-skill-0']['old.md'] = 'old-reference';
+  before.skillHashes['sharpen-skill-0']['old.md'] = 'old-reference';
   const input = { ...structuredClone(before), currentSkillHashes: structuredClone(before.skillHashes) };
-  delete input.currentSkillHashes['rm-skill-0']['old.md'];
-  input.currentSkillHashes['rm-skill-0']['new.md'] = 'new-reference';
-  const changes = assertRecheckInputs(before, input, ['rm-skill-0'], catalog)['rm-skill-0'];
+  delete input.currentSkillHashes['sharpen-skill-0']['old.md'];
+  input.currentSkillHashes['sharpen-skill-0']['new.md'] = 'new-reference';
+  const changes = assertRecheckInputs(before, input, ['sharpen-skill-0'], catalog)['sharpen-skill-0'];
   assert.deepEqual(changes.changedFiles, [
     { path: 'new.md', beforeHash: null, afterHash: 'new-reference' },
     { path: 'old.md', beforeHash: 'old-reference', afterHash: null },
@@ -81,12 +81,12 @@ test('changed file evidence includes additions and removals with both before and
 });
 
 test('recheck fails when a skill does not have two cases for both providers', () => {
-  const incomplete = matrix.filter(item => !(item.provider === 'claude' && item.testCase.skill === 'rm-skill-0'));
-  assert.throws(() => selectRecheckIds(incomplete, ['rm-skill-0']), /two cases across two providers/);
+  const incomplete = matrix.filter(item => !(item.provider === 'claude' && item.testCase.skill === 'sharpen-skill-0'));
+  assert.throws(() => selectRecheckIds(incomplete, ['sharpen-skill-0']), /two cases across two providers/);
 });
 
 async function archivedFixture() {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-recheck-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-recheck-'));
   const directory = path.join(root, 'eval-results', 'completed');
   await mkdir(path.join(directory, 'skills'), { recursive: true });
   const metadata = { ...structuredClone(parent), plannedCalls: 32, startedAt: 'completed' };
@@ -117,8 +117,8 @@ test('recheck loads all parent records, preserves their bytes, and targets curre
     assert.equal(loaded.priorAttemptedCalls, 33);
     assert.equal(loaded.records.length, 32);
     assert.equal(loaded.grades[0].inherited.length, 8);
-    assert.notEqual(loaded.targetSkillHashes['rm-skill-0']['SKILL.md'], fixture.metadata.skillHashes['rm-skill-0']['SKILL.md']);
-    assert.deepEqual(loaded.targetSkillHashes['rm-skill-7'], fixture.metadata.skillHashes['rm-skill-7']);
+    assert.notEqual(loaded.targetSkillHashes['sharpen-skill-0']['SKILL.md'], fixture.metadata.skillHashes['sharpen-skill-0']['SKILL.md']);
+    assert.deepEqual(loaded.targetSkillHashes['sharpen-skill-7'], fixture.metadata.skillHashes['sharpen-skill-7']);
     assert.deepEqual(await sourceSnapshot(fixture.directory), original);
     await assert.rejects(loadRecheck({ ...fixture.options, skills: [] }), /explicitly selected skills/);
     await rm(path.join(fixture.directory, `${records[0].id}.json`));

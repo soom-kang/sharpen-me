@@ -100,7 +100,7 @@ test('inherited records retain the evidence and grades exclude retried IDs', () 
 });
 
 async function archivedFixture() {
-  const root = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-resume-'));
+  const root = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-resume-'));
   const directory = path.join(root, 'eval-results', 'original');
   await mkdir(path.join(directory, 'skills', 'replacement'), { recursive: true });
   await mkdir(path.join(root, 'skills', 'replacement'), { recursive: true });

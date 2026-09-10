@@ -2,6 +2,7 @@ import { mkdtemp, mkdir, writeFile, readFile, readdir, rm, lstat, realpath } fro
 import os from 'node:os';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
+import { readBaseline, nameMapping } from './eval-baseline.mjs';
 import { catalog } from './catalog.mjs';
 import { filesBelow, root } from './verify.mjs';
 import { run } from './process.mjs';
@@ -53,7 +54,7 @@ async function verifyInstalled(cwd, selected, mode) {
   }
 }
 
-const tmp = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-install-'));
+const tmp = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-install-'));
 try {
   const all = catalog.map(s => s.name);
   const groups = [all, ...catalog.map(s => [s.name]), all, [catalog[0].name]];
@@ -88,6 +89,31 @@ try {
       if (await readFile(path.join(cwd, dir, 'keep-me/SKILL.md'), 'utf8') !== sentinel) throw new Error('Unrelated skill changed');
     }
     console.log(`PASS: ${groups[i].join(', ')} installed for Codex and Claude with matching content and project paths (${mode})`);
+  }
+  // Exercise the documented migration only in disposable project installations.
+  const prepared = await readBaseline(root);
+  const oldSource = path.join(tmp, 'old-source');
+  for (const [relative, bytes] of Object.entries(prepared.original)) {
+    const target = path.join(oldSource, 'skills', relative);
+    await mkdir(path.dirname(target), { recursive: true });
+    await writeFile(target, bytes);
+  }
+  for (const mode of ['copy', 'symlink']) {
+    const cwd = path.join(tmp, `migration-${mode}`);
+    await mkdir(cwd);
+    const add = ['--skill', '*', '--agent', 'codex', 'claude-code', ...(mode === 'copy' ? ['--copy'] : []), '--yes'];
+    await invoke(cwd, ['add', oldSource, ...add]);
+    for (const dir of ['.agents/skills', '.claude/skills']) {
+      await mkdir(path.join(cwd, dir, 'keep-me'), { recursive: true });
+      await writeFile(path.join(cwd, dir, 'keep-me/SKILL.md'), 'Unrelated skill');
+    }
+    await invoke(cwd, ['remove', ...Object.keys(nameMapping), '--yes']);
+    await invoke(cwd, ['add', source, ...add]);
+    await verifyInstalled(cwd, catalog.map(s => s.name), mode);
+    for (const dir of ['.agents/skills', '.claude/skills']) {
+      if (await readFile(path.join(cwd, dir, 'keep-me/SKILL.md'), 'utf8') !== 'Unrelated skill') throw new Error('Migration changed unrelated skill');
+    }
+    console.log(`PASS: old-name removal and new-name installation (${mode})`);
   }
   console.log('PASS: complete set, standalone installs, reinstall, targeted removal, and unrelated skill preservation');
 } finally {

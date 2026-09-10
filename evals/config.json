@@ -16,6 +16,6 @@
     "codex"
   ],
   "modelPolicy": "primary_response_only",
-  "contractRevision": 2,
-  "historicalAttemptedCalls": 2
+  "contractRevision": 3,
+  "historicalAttemptedCalls": 290
 }

@@ -15,7 +15,7 @@ export function containerCommand(image, fixture, argv, name) {
     '--allow-fs-read=/fixture', ...(argv.includes('--test') ? ['--test-isolation=none'] : []), ...argv.slice(1)];
 }
 export async function dockerCheck(image, fixture, argv, execute = run) {
-  const name = `rm-eval-${randomUUID()}`;
+  const name = `sharpen-eval-${randomUUID()}`;
   let result;
   try {
     result = await execute(containerCommand(image, fixture, argv, name), { timeoutMs: checkTimeoutMs, maxBytes: 100_000 });

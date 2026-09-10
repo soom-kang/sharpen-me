@@ -13,7 +13,7 @@ test('rejects malformed frontmatter and preserves typed metadata', () => {
   assert.deepEqual(frontmatter('---\nname: example\n---\nBody').metadata, { name: 'example' });
 });
 test('standalone references cannot escape the selected skill', async () => {
-  const tmp = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-links-'));
+  const tmp = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-links-'));
   try {
     const skill = path.join(tmp, 'skill');
     await mkdir(skill);
@@ -27,13 +27,13 @@ test('standalone references cannot escape the selected skill', async () => {
 });
 
 test('a selected skill must contain the full license and cannot be an external symlink', async () => {
-  const tmp = await mkdtemp(path.join(os.tmpdir(), 'refactor-me-license-'));
+  const tmp = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-license-'));
   try {
-    const directory = path.join(tmp, 'rm-scope');
-    await cp(path.join(root, 'skills/rm-scope'), directory, { recursive: true });
+    const directory = path.join(tmp, 'sharpen-clarify');
+    await cp(path.join(root, 'skills/sharpen-clarify'), directory, { recursive: true });
     await writeFile(path.join(directory, 'LICENSE'), 'MIT License\nIncomplete notice fixture.\n');
-    await assert.rejects(validateSkill(directory, 'rm-scope'), /copyright notices/);
+    await assert.rejects(validateSkill(directory, 'sharpen-clarify'), /copyright notices/);
     await symlink(directory, path.join(tmp, 'linked'));
-    await assert.rejects(validateSkill(path.join(tmp, 'linked'), 'rm-scope'), /real directory/);
+    await assert.rejects(validateSkill(path.join(tmp, 'linked'), 'sharpen-clarify'), /real directory/);
   } finally { await rm(tmp, { recursive: true }); }
 });

@@ -1,6 +1,0 @@
-interface:
-  display_name: "Fresh-Context Review"
-  short_description: "Review as a reader who never saw the reasoning"
-  default_prompt: "Use $rm-review-fresh to independently review this artifact in comprehension or code mode and report actual isolation."
-policy:
-  allow_implicit_invocation: true

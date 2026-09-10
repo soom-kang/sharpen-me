@@ -1,0 +1,8 @@
+Use case: logo-brand
+Asset type: GitHub README title banner for sharpen-me, eight engineering skills for clarifying requests, reviewing work, assessing risk and refining code and documents.
+Create one finished raster banner, horizontal 3:1 composition, target 1536 x 512 pixels.
+Warm ivory background, crisp near-black lowercase typography and a small burnt-orange accent.
+Text (verbatim): "sharpen-me". Preserve the hyphen and all lowercase letters. No other text.
+Use a restrained editorial composition with generous margins. The large title is the primary visual anchor, readable when scaled to 360 pixels wide. Beside it, a compact abstract arrangement of precisely cut geometric planes suggests honing an edge and bringing a decision into focus. Flat ink, clean negative space, measured spacing.
+A single banner, not a brand board or mockup. No fake code, slogan, labels, watermarks, robots, sparkles, gradients, neon or glossy 3D. Keep the entire title clear of all edges.
+Edit the supplied banner: remove only the three short orange radiating accent strokes above and to the right of the geometric mark. Leave the two geometric planes, exact title, layout, ivory background, colors, texture and canvas proportions unchanged. Do not add any other elements.

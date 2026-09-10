@@ -1,7 +1,7 @@
 import { isDeepStrictEqual } from 'node:util';
 import { sha256 } from './eval-resume.mjs';
 export const schemaVersion = 3;
-export const baseline = '09bb9761294f0189a59e119e2b0db1c3db502370';
+export { baseline } from './eval-baseline.mjs';
 export const idOf = ({provider, version, testCase, repeat}) => `${provider}--${version}--${testCase.id}--r${repeat}`;
 export function assertV3(value) {
   if (value?.schemaVersion !== schemaVersion || ['arm', 'baselineHashes', 'replacementHashes', 'skillHashes'].some(k => Object.hasOwn(value, k))) {
@@ -10,7 +10,7 @@ export function assertV3(value) {
 }
 export function selectedProviders(config) {
   const selected = config.selectedProviders;
-  if (config.contractRevision !== 2 || config.modelPolicy !== 'primary_response_only') {
+  if (config.contractRevision !== 3 || config.modelPolicy !== 'primary_response_only') {
     throw Object.assign(new Error('Evaluation policy differs; preserve the old archive and start a separately authorized run'), { code: 'UNSUPPORTED_EVALUATION_POLICY' });
   }
   if (!Array.isArray(selected) || !selected.length || new Set(selected).size !== selected.length ||

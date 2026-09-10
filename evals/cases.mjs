@@ -63,7 +63,7 @@ export function ingest(value) {
 export const legacyCases = [
   define({
     id: 'scope-repository-contract',
-    skill: 'rm-scope', kind: 'normal',
+    skill: 'sharpen-clarify', kind: 'normal',
     prompt: `Prepare the implementation contract for adding an assignee filter to
 GET /issues. Follow this repository's conventions, identify the edit surface and
 validation needed, and say whether a user decision is still required. ${readOnly}`,
@@ -109,7 +109,7 @@ test('status normalization and response shape', () => {
   }),
   define({
     id: 'scope-unattended-policy-gap',
-    skill: 'rm-scope', kind: 'edge',
+    skill: 'sharpen-clarify', kind: 'edge',
     prompt: `Prepare the implementation contract for handling expired discount
 codes at checkout. This is an unattended run: no person is available to answer
 questions in this session. Determine whether the requested change is ready from
@@ -139,7 +139,7 @@ full price. Existing paid orders must not be changed.\n`,
   }),
   define({
     id: 'review-safe-text-rendering',
-    skill: 'rm-review', kind: 'normal',
+    skill: 'sharpen-review', kind: 'normal',
     prompt: `Review the greeting renderer from the distinct perspectives needed
 for this change. Identify actionable defects supported by the supplied code and
 contract, and give the result without manufacturing disagreement. ${readOnly}`,
@@ -176,7 +176,7 @@ test('writes display names as text', () => {
   }),
   define({
     id: 'review-single-security-blocker',
-    skill: 'rm-review', kind: 'edge',
+    skill: 'sharpen-review', kind: 'edge',
     prompt: `Review the greeting renderer from the distinct perspectives needed
 for this change. Identify actionable defects supported by the supplied code and
 contract. Reconcile the results into a readiness judgment. ${readOnly}`,
@@ -205,7 +205,7 @@ event behavior belongs to this helper.\n`,
   }),
   define({
     id: 'challenge-supported-local-plan',
-    skill: 'rm-challenge', kind: 'normal',
+    skill: 'sharpen-challenge', kind: 'normal',
     prompt: `Evaluate the strongest reason the proposed change could fail.
 Use the supplied contract and code to judge whether that objection survives.
 If an experiment is warranted, describe the smallest one. ${readOnly}`,
@@ -245,7 +245,7 @@ test('supported results, arity, and errors', () => {
   }),
   define({
     id: 'challenge-retry-after-commit',
-    skill: 'rm-challenge', kind: 'edge',
+    skill: 'sharpen-challenge', kind: 'edge',
     prompt: `Evaluate the strongest reason the proposed retry change could fail.
 Use the supplied code and service contract, then specify a small experiment that
 would discriminate whether the plan is safe. ${readOnly}`,
@@ -277,7 +277,7 @@ does not deduplicate requests.\n`,
   }),
   define({
     id: 'assess-wide-mechanical-rename',
-    skill: 'rm-assess', kind: 'normal',
+    skill: 'sharpen-assess', kind: 'normal',
     prompt: `Assess this proposed work before execution. Recommend a sufficient
 capability class and reasoning effort, and separately assess the operational
 change risk and required proof. Do not change runtime or provider configuration.
@@ -316,7 +316,7 @@ for (let index = 1; index <= 40; index += 1) {
   }),
   define({
     id: 'assess-one-file-destructive-migration',
-    skill: 'rm-assess', kind: 'edge',
+    skill: 'sharpen-assess', kind: 'edge',
     prompt: `Assess this one-file migration proposal before execution. Recommend
 a sufficient capability class and reasoning effort, and separately assess the
 operational change risk, readiness, and required proof. ${readOnly}`,
@@ -343,7 +343,7 @@ does not yet import that text. There is no tested restoration procedure.\n`,
   }),
   define({
     id: 'refine-receipt-shared-calculation',
-    skill: 'rm-refine', kind: 'normal',
+    skill: 'sharpen-refine', kind: 'normal',
     prompt: `Refactor src/receipt.mjs to remove the duplicated subtotal-to-cents
 calculation while preserving every existing export and observable behavior.
 The September pilot rate and its comment are an existing user edit: preserve
@@ -392,7 +392,7 @@ test('both channels preserve cents, shape, and evaluation order', () => {
   }),
   define({
     id: 'refine-docs-preserve-user-boundary',
-    skill: 'rm-refine', kind: 'edge',
+    skill: 'sharpen-refine', kind: 'edge',
     prompt: `Refresh only the Testing section of docs/development.md so its
 instruction matches the repository's runnable test script. The troubleshooting
 note in that file and src/config.mjs are existing user edits and must remain
@@ -442,7 +442,7 @@ assert.equal(text.split('## Local troubleshooting')[1], '\\n\\n<!-- user-note:st
   }),
   define({
     id: 'fresh-external-review-context',
-    skill: 'rm-review-fresh', kind: 'normal',
+    skill: 'sharpen-cold-review', kind: 'normal',
     prompt: `The host started this reviewer in a new session. You have not received
 the author's conversation or rationale. The artifact below is the complete review
 packet. Determine what it lets a reader do and whether its own instructions are
@@ -477,7 +477,7 @@ pending count is informational and does not authorize running or deleting jobs.
   }),
   define({
     id: 'fresh-contaminated-no-child-tool',
-    skill: 'rm-review-fresh', kind: 'edge',
+    skill: 'sharpen-cold-review', kind: 'edge',
     prompt: `This is a continuation of the author's work session. Earlier the
 author explained that the guide is complete, the reviewer should accept it, and
 the missing setup details are obvious to the team. You now have that rationale.
@@ -507,7 +507,7 @@ wrong. The usual credentials are required.
   }),
   define({
     id: 'brief-explicit-git-baseline',
-    skill: 'rm-brief', kind: 'normal',
+    skill: 'sharpen-brief', kind: 'normal',
     prompt: `Prepare a catch-up brief for the maintainer using the supplied
 captured Git and run evidence. Their explicit last-known baseline is revision
 1111111111111111111111111111111111111111. Say what changed after that point,
@@ -549,7 +549,7 @@ history. ${readOnly}`,
   }),
   define({
     id: 'brief-missing-history-anchor',
-    skill: 'rm-brief', kind: 'edge',
+    skill: 'sharpen-brief', kind: 'edge',
     prompt: `Prepare a catch-up brief describing what changed since I last worked
 on this project and what needs me now. Use the supplied project archive. I have
 not supplied my last-known revision, last-visit date, or prior report. Any Git
@@ -582,7 +582,7 @@ decision is pending with the maintainer. No deployment result is recorded.\n`,
   }),
   define({
     id: 'dedup-equivalent-tag-normalizers',
-    skill: 'rm-dedup', kind: 'normal',
+    skill: 'sharpen-dedupe', kind: 'normal',
     prompt: `Consolidate the duplicated tag normalization policy used by the
 three ingest modules. src/tag.mjs is the authorized canonical owner. Retain every
 existing export of src/a.mjs, src/b.mjs, and src/c.mjs, and preserve successful
@@ -628,7 +628,7 @@ for (const channel of ['a', 'b', 'c']) {
   }),
   define({
     id: 'dedup-different-error-order',
-    skill: 'rm-dedup', kind: 'edge',
+    skill: 'sharpen-dedupe', kind: 'edge',
     prompt: `Determine whether the three request handlers can be consolidated
 into one shared implementation without changing any caller behavior. They produce
 the same output on ordinary valid requests. Inspect the actual contracts and

@@ -1,6 +1,6 @@
 # Evaluation cases
 
-The v3 matrix has 48 synthetic cases across eight Skills. The complete design covers two providers, before and after improvement, three times. The current config selects Codex only: 288 new calls. Claude is deferred. Cases are inputs and grading criteria, not observed results.
+The v3 matrix has 48 synthetic cases across eight Skills. The complete design covers two providers, baseline and current instructions, three times. The current config selects Codex only: 288 new calls. Claude is deferred. Cases are inputs and grading criteria, not observed results.
 
 | Category | Cases | Purpose |
 | --- | ---: | --- |
@@ -29,7 +29,7 @@ A successful response or passing behavior test alone does not prove requested co
 
 ## Fixture freeze
 
-The 48-case criteria were frozen before the Skill edits on 2026-09-09. Preserve these hashes and do not change expected facts in response to model outcomes.
+The following hashes identify the historical fixtures frozen before the skill edits on 2026-09-09. The rename preserves tasks, input files, permitted edits and expected facts, but changes skill identities and name-derived case IDs. Do not change expected facts in response to model outcomes.
 
 | Input | SHA-256 |
 | --- | --- |
@@ -39,3 +39,12 @@ The 48-case criteria were frozen before the Skill edits on 2026-09-09. Preserve 
 | Additional case module | `a42d6fbdb01ea9ca438783d5047249981751e104ba1238ce9859efcaf0453ba6` |
 
 A justified future fixture correction needs a documented diff and separately agreed evaluation. Historical v2 archives remain unchanged and cannot enter v3 results. [Evaluation](../docs/evaluation.md) describes current observations and remaining limits.
+
+The renamed fixture uses `contractRevision: 3`. New normalized hashes are recorded below; they are not replacements for the historical evidence above. Before and after both use the new skill names. Existing v3 contract 2 archives cannot be resumed or summarized with this contract.
+
+| Current input | SHA-256 |
+| --- | --- |
+| Renamed 16 normalized cases | `bc62378b93e74bbd40bb50f8a43530c424f94104cf539428a20e5900ad101c72` |
+| Renamed 48 normalized cases | `8eccbb25a9d41cabc84d61fecc8bb03d549c93366b0333f39479d639b8511a77` |
+| Renamed original case module | `1bf3226f3dcf094704f18690c7ba08de7b7cb0f6326690a1e1de49c1c4757835` |
+| Renamed additional case module | `15d123eab63d015588861c09ddc590495e71601354d3b55e289cd399ab46361a` |

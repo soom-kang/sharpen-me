@@ -1,8 +1,13 @@
 # Evaluation
 
-**Current status: Codex evaluation complete, acceptance gate not met.** The new 288-call run has 198 PASS, 35 FAIL, 55 UNCLEAR, and 0 NOT_RUN. Improved-version results are 111 PASS, 12 FAIL, and 21 UNCLEAR out of 144. Claude remains deferred and overall release readiness is false. See the [Korean Codex evaluation report](codex-evaluation.ko.md) for per-Skill comparisons, selection regressions, evidence limitations, and remaining work.
+**Current sharpen-me status: NOT_RUN.** No provider evaluation has run under the renamed skills and `contractRevision: 3`. Earlier results below concern the files before renaming. The tables use current names for readability; [the name mapping](rename.md#names) identifies the original names. Historical counts, IDs and hashes are retained. Claude remains deferred and `releaseReady` remains false.
 
-Run `2026-09-09T05-50-58-256Z-v3` used primary-response-only model verification and **288 new Codex invocations**, with no retry, fallback, or extra paid grader. All returned model identities were unavailable and recorded as `explicit_cli_argument_only`. Including the historical two calls, cumulative attempts are 290. The historical result below is preserved; it was not regraded or inherited into the new phase.
+
+## Historical Codex evaluation
+
+**Historical status: Codex evaluation complete, acceptance gate not met.** The new 288-call run has 198 PASS, 35 FAIL, 55 UNCLEAR, and 0 NOT_RUN. Improved-version results are 111 PASS, 12 FAIL, and 21 UNCLEAR out of 144. Claude remains deferred and overall release readiness is false. See the [Korean Codex evaluation report](codex-evaluation.ko.md) for per-Skill comparisons, selection regressions, evidence limitations, and remaining work.
+
+Run `2026-09-09T05-50-58-256Z-v3` used primary-response-only model verification and **288 new Codex invocations**, with no retry, fallback, or extra paid grader. All returned model identities were unavailable and recorded as `explicit_cli_argument_only`. Including the historical two calls, cumulative attempts are 290. The stopped-run result below is preserved; it was not regraded or inherited into the new phase.
 
 ## Historical stopped run
 
@@ -21,15 +26,15 @@ Codex did not expose a returned model identity in its event stream; its record s
 No automatic-selection or default-output case ran in that historical archive. Its lack of selection-regression evidence is not evidence of non-regression. The [earlier Korean improvement report](improvement-report.ko.md) retains that stage's per-Skill counts and local validation; the new report linked above contains the completed Codex comparison.
 
 
-## Matrix and method
+## Current matrix and method
 
 | Setting | Frozen contract |
 | --- | --- |
-| Before | Complete `skills/` tree at `09bb9761294f0189a59e119e2b0db1c3db502370` |
-| After | Complete improved installation units, frozen before dispatch |
+| Before | Complete `skills/` tree at `87b2e064ad0d5ba7b38a1f7c194929fda980cf0a`, normalized to the new names |
+| After | Complete current installation units, frozen before dispatch |
 | Cases | 16 original behavior + 8 regression + 8 natural output + 16 implicit selection |
 | Repetitions | Three per case/provider/version |
-| Calls | Current phase: 48 × 1 × 2 × 3 = 288 new Codex calls; historical two calls stay separate |
+| Calls | Current phase: 48 × 1 × 2 × 3 = 288 planned Codex calls; 290 historical attempts stay separate |
 | Claude | Deferred; configured `claude-opus-5 / medium`, no invocation in this phase |
 | Codex | `gpt-6-astra`, `medium` |
 | Provider timeout | 180 seconds; no automatic retry or fallback |
@@ -37,15 +42,20 @@ No automatic-selection or default-output case ran in that historical archive. It
 | Behavior checks | Node 24.20.0 Docker container, 30 seconds per check |
 | Grading | Version labels masked; no additional paid grader |
 
+The baseline commit is the existing `v0.8.10-beta.1` tag. The runner preserves its original 24 files, then changes only skill names, H1 titles and display metadata in a comparison copy. It records the original hashes, name mapping, normalization rules version and normalized hashes in `baselineNormalization`, bound to `inputHash`. A missing commit, incomplete installation unit or inconsistent normalization stops before any provider invocation.
+
+Both versions expose the same new names. For this rename, the normalized baseline and current skill files match. This comparison is a baseline for later instruction changes; it does not measure how renaming affects automatic selection. No new calls are authorized by the rename work. If a later 288-call run is authorized, cumulative attempts would be at most 578.
+
 [Case definitions](../evals/README.md) distinguish required JSON from natural responses. JSON retains existing type checks and permits extra fields. Automatic selection has independent positive/negative cases with balanced Korean/English prompts. No Skill identity or answer key appears in those task prompts. All eight Skills are installed for both versions. Successful source loading requires observed complete source content, not a similar-looking response.
 
 Within each provider lane, before/after pairs alternate their leading version across cases and repetitions. The durable dispatch journal records actual launch order. Authentication, quota, reported model mismatch, isolation failure, or harness failure stops new dispatch. An already running peer may finish. Attempted records are never automatically repeated.
 
 ## Result format
 
-New run files use `schemaVersion: 3`; existing v2 archives remain unchanged and are rejected by the v3 runner and summarizer.
+New run files use `schemaVersion: 3` and `contractRevision: 3`. The runner and summarizer reject older contracts, including the previous v3 contract. Historical archives remain unchanged; use their frozen tools for historical inspection rather than converting or mixing evidence.
 
-- `run.json`: baseline revision, configuration (including `contractRevision: 2`, `modelPolicy`, and `selectedProviders`), input hash, working/frozen file hashes, selected CLI versions, Docker ID/digests, Node version, and declared matrix.
+- `run.json`: baseline revision, `baselineNormalization` provenance, configuration (including `contractRevision: 3`, `modelPolicy`, and `selectedProviders`), input hash, working/frozen file hashes, selected CLI versions, Docker ID/digests, Node version, and declared matrix.
+- `frozen/original/skills/`: unchanged baseline bytes from Git.
 - `frozen/before/skills/` and `frozen/after/skills/`: whole installation units, including metadata and license.
 - `frozen/scripts/`, `frozen/evals/`, and `frozen/cases.json`: the evaluator and evaluator-only criteria.
 - `dispatch.json`: unique invocation IDs, order, and start times, written before provider spawn.
@@ -59,9 +69,9 @@ Responses are retained as text after removing local fixture paths and credential
 
 ## Review and release criteria
 
-The `v0.8.10-beta.1` Pre-release makes the existing Skills available for beta use with these evaluation gaps disclosed. It does not change either acceptance gate or establish behavioral readiness for both agents.
+The historical `v0.8.10-beta.1` tag contains the original skill names. Its validation does not certify the renamed installation units. No new release is part of this rename.
 
-The historical baseline commit `09bb976` is absent from the current repository history. The public checkout alone cannot reproduce the original before/after evaluation. Local frozen snapshots remain separate from the distribution; this beta does not restore history or rerun provider evaluations.
+The historical baseline commit `09bb976` is absent from the current repository history. The public checkout alone cannot reproduce the original before/after evaluation. Local frozen snapshots remain separate from the distribution; the rename does not restore that history or rerun those evaluations. The current contract uses the available `87b2e06` baseline instead.
 
 Execution can produce `REVIEW_REQUIRED`, `FAIL`, `UNCLEAR`, or `NOT_RUN`. `REVIEW_REQUIRED` needs evidence review; it is not a pass. Reviewers assign `PASS`, `FAIL`, `UNCLEAR`, or `NOT_RUN` and identify missing facts, unsupported claims, and scope violations.
 
@@ -81,4 +91,4 @@ Three repetitions describe these fixtures. They do not establish a general win r
 
 ## Historical evidence
 
-Earlier 2026-09-07 observations identified unsupported repair claims in `rm-review`, observation/cause confusion in `rm-challenge`, guessed platform defaults in `rm-assess`, and omitted material uncertainty in `rm-brief`. Those observations concern earlier bytes and remain regression targets. They are not passes or measured failures of this revision and are not converted into v3.
+Earlier 2026-09-07 observations identified unsupported repair claims in `sharpen-review`, observation/cause confusion in `sharpen-challenge`, guessed platform defaults in `sharpen-assess`, and omitted material uncertainty in `sharpen-brief`. Those observations concern earlier bytes and remain regression targets. They are not passes or measured failures of this revision and are not converted into v3.

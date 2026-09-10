@@ -35,7 +35,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
-The approved configuration is in [evals/config.json](../evals/config.json). `selectedProviders: ["codex"]` selects Codex `gpt-6-astra / medium` only: 180 seconds per call, three repetitions, maximum 288 new calls. The two historical calls remain separate, for at most 290 cumulative attempts. Claude settings remain available for a separately agreed later phase; its CLI is neither probed nor invoked in this phase. No automatic retry, model fallback, or extra paid grading call is available.
+The approved configuration is in [evals/config.json](../evals/config.json). `selectedProviders: ["codex"]` selects Codex `gpt-6-astra / medium` only: 180 seconds per call, three repetitions, maximum 288 new calls. The 290 historical attempts remain separate, for at most 578 cumulative attempts after a separately authorized new run. The rename itself authorizes no provider evaluation. Claude settings remain available for a separately agreed later phase; its CLI is neither probed nor invoked in this phase. No automatic retry, model fallback, or extra paid grading call is available.
 
 ```bash
 npm run eval
@@ -43,9 +43,9 @@ npm run eval -- --resume eval-results/<v3-directory> --dry-run
 npm run eval -- --resume eval-results/<v3-directory>
 ```
 
-The current contract uses `contractRevision: 2` and `modelPolicy: primary_response_only`. It checks structured primary assistant model fields and stores aggregate model usage separately. Extra models in usage are not a fallback finding. Unavailable returned identity is explicitly recorded as `explicit_cli_argument_only`; prose is never model evidence. Existing archives without this policy are preserved and rejected before execution or rewriting.
+The current contract uses `contractRevision: 3` and `modelPolicy: primary_response_only`. It checks structured primary assistant model fields and stores aggregate model usage separately. Extra models in usage are not a fallback finding. Unavailable returned identity is explicitly recorded as `explicit_cli_argument_only`; prose is never model evidence. Existing archives without this policy are preserved and rejected before execution or rewriting.
 
-A new run freezes complete before/after Skill directories, case data, runner code, configuration, CLI versions, and Docker image identity. Do not edit these inputs during a run. The before tree is extracted from `09bb976` without changing the checkout. Each selected provider runs serially. This Codex-only phase has one call in flight. Paired version order is balanced and actual dispatch order is saved before spawning.
+A new run freezes complete before/after Skill directories, case data, runner code, configuration, CLI versions, and Docker image identity. Do not edit these inputs during a run. The original tree is extracted from `87b2e064ad0d5ba7b38a1f7c194929fda980cf0a` without changing the checkout. The runner retains the original bytes under `frozen/original/skills/` and normalizes identity text into `frozen/before/skills/`. The original hashes, normalized hashes, mapping and rules version are bound to the run input hash. Both versions install the new names. See [Evaluation](evaluation.md#current-matrix-and-method) for the comparison limits. Each selected provider runs serially. This Codex-only phase has one call in flight. Paired version order is balanced and actual dispatch order is saved before spawning.
 
 Authentication, quota, model mismatch, or isolation/harness failure stops further dispatch; an already in-flight peer can finish. Timeout evidence is retained without retry. Resume accepts only the same v3 inputs and environment and selects **never-called** slots. Attempted calls, including interrupted calls, retain their evidence. An incomplete dispatch journal blocks automatic resume because the attempt count is uncertain. Repeating an attempted call or changing inputs requires separate agreement and a new evaluation, not a recheck flag.
 
@@ -69,12 +69,14 @@ The v3 summary checks source and observation hashes, identities, required checks
 
 Packaging success is separate from behavioral validation. Preserve the beta notice and report unresolved evaluation results in [Evaluation](evaluation.md). Before an authorized release, compare the current Skill bytes with the evaluated after snapshot, inspect the final diff, and verify installation from the exact published tag in a disposable project.
 
-The first beta identifier is `v0.8.10-beta.1`, matching package version `0.8.10-beta.1`. Publish it as a GitHub Pre-release without the Latest designation. This is an explicitly approved beta publication with known evaluation gaps, not a passing behavioral release gate. Keep `evaluationPassed` and `releaseReady` unchanged. The package remains private to npm; distribution uses the Git repository and GitHub source archives.
+The existing `v0.8.10-beta.1` tag is historical and still contains the previous skill names. Package version `0.8.10-beta.1` remains unchanged during this rename; it is not a claim of a new release. Do not move the tag or use it to verify new-name installation. The package remains private to npm.
 
-Prepare the final diff, local check results, and [release notes](releases/v0.8.10-beta.1.md) before requesting approval for the release commit, main push, annotated tag push, and public Pre-release. After approval, wait for Verify to pass on the exact release commit, tag that SHA, and run the installation suite against the remote tag before publishing:
+Before publishing the renamed files, the owner must rename the GitHub repository to `soom-kang/sharpen-me`, update their local remote and workspace path as needed, and publish the reviewed changes. Then verify the new repository's actual branch in a disposable project:
 
 ```bash
-npm run test:install -- --source https://github.com/soom-kang/refactor-me/tree/v0.8.10-beta.1
+npm run test:install -- --source https://github.com/soom-kang/sharpen-me
 ```
 
-Create the Release with `--verify-tag --prerelease --latest=false` and the reviewed notes file. If a remote tag already exists or the expected branch SHA changes, stop and reconcile the state. If tag installation fails, retain the tag and report the failure instead of publishing or moving it. Do not present the beta as installable before publication. Never overwrite an existing tag or discard local Skill edits to recover. Global installation and user model configuration changes remain outside this release workflow.
+The repository rename and remote installation check are pending owner actions. Local installation tests do not establish that the remote repository serves these files. For a future release, agree on a new version and tag, review the diff and validation evidence, and obtain authorization for commit, push and publication. Never overwrite an existing tag or discard local skill edits to recover.
+
+Existing installations require the [manual replacement steps](rename.md#replace-an-existing-project-installation). Global installation and user model settings are outside this workflow.
