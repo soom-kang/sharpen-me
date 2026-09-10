@@ -11,7 +11,7 @@ Codex와 Claude Code에서 작업 계획, 코드 리뷰, 리팩토링에 사용�
 
 **상태: 베타.**
 
-[English](../README.md) · [설계](design.md) · [평가](evaluation.md) · [유지보수](maintenance.md)
+[English](../README.md) · [Releases](https://github.com/soom-kang/refactor-me/releases) · [설계](design.md) · [평가](evaluation.md) · [유지보수](maintenance.md)
 
 ## 설치
 
@@ -28,6 +28,14 @@ Codex와 Claude Code에 8개를 모두 설치하려면 다음 명령을 사용�
 ```bash
 npx skills add soom-kang/refactor-me --skill '*' --agent codex claude-code
 ```
+
+첫 beta 버전을 고정해서 설치하려면 [Releases](https://github.com/soom-kang/refactor-me/releases)에 `v0.8.10-beta.1`이 게시된 뒤 다음 명령을 사용하세요.
+
+```bash
+npx skills add https://github.com/soom-kang/refactor-me/tree/v0.8.10-beta.1 --skill '*' --agent codex claude-code
+```
+
+이 beta는 두 agent의 설치를 지원합니다. Codex 행동 평가의 통과 기준은 아직 충족하지 못했고, Claude 행동 평가는 보류 상태입니다. 검증 범위와 한계는 [평가](evaluation.md)를 참고하세요.
 
 두 agent에 `rm-review`만 설치하려면 다음 명령을 사용합니다.
 

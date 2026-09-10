@@ -11,7 +11,7 @@ Use refactor-me to clarify a request before implementation, review a code change
 
 **Status: beta.**
 
-[한국어](docs/README.ko.md) · [Design](docs/design.md) · [Evaluation](docs/evaluation.md) · [Maintenance](docs/maintenance.md)
+[한국어](docs/README.ko.md) · [Releases](https://github.com/soom-kang/refactor-me/releases) · [Design](docs/design.md) · [Evaluation](docs/evaluation.md) · [Maintenance](docs/maintenance.md)
 
 ## Install
 
@@ -28,6 +28,14 @@ To install all eight for Codex and Claude Code:
 ```bash
 npx skills add soom-kang/refactor-me --skill '*' --agent codex claude-code
 ```
+
+To pin the first beta, use the following command after `v0.8.10-beta.1` appears in [Releases](https://github.com/soom-kang/refactor-me/releases):
+
+```bash
+npx skills add https://github.com/soom-kang/refactor-me/tree/v0.8.10-beta.1 --skill '*' --agent codex claude-code
+```
+
+This beta supports installation for both agents. The Codex behavioral acceptance gate has not been met, and Claude behavioral evaluation remains deferred. See [Evaluation](docs/evaluation.md) for the limits of the available evidence.
 
 To install only `rm-review` for both agents:
 

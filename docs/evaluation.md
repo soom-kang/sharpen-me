@@ -59,6 +59,10 @@ Responses are retained as text after removing local fixture paths and credential
 
 ## Review and release criteria
 
+The `v0.8.10-beta.1` Pre-release makes the existing Skills available for beta use with these evaluation gaps disclosed. It does not change either acceptance gate or establish behavioral readiness for both agents.
+
+The historical baseline commit `09bb976` is absent from the current repository history. The public checkout alone cannot reproduce the original before/after evaluation. Local frozen snapshots remain separate from the distribution; this beta does not restore history or rerun provider evaluations.
+
 Execution can produce `REVIEW_REQUIRED`, `FAIL`, `UNCLEAR`, or `NOT_RUN`. `REVIEW_REQUIRED` needs evidence review; it is not a pass. Reviewers assign `PASS`, `FAIL`, `UNCLEAR`, or `NOT_RUN` and identify missing facts, unsupported claims, and scope violations.
 
 The selected-provider `evaluationPassed` gate requires the declared matrix to have complete evidence, no unresolved or unrun results, all improved-version cases passing in every repetition, and no observed selection regression. Before-version failures are valid comparative observations. `releaseReady` also requires both providers to be selected and validated; Codex-only success leaves Claude deferred and cannot open the overall release gate. A semantic PASS cannot override missing source-read evidence, invalid JSON, failed/missing required checks, out-of-scope changes, or incomplete provider execution.

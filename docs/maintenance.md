@@ -69,4 +69,12 @@ The v3 summary checks source and observation hashes, identities, required checks
 
 Packaging success is separate from behavioral validation. Preserve the beta notice and report unresolved evaluation results in [Evaluation](evaluation.md). Before an authorized release, compare the current Skill bytes with the evaluated after snapshot, inspect the final diff, and verify installation from the exact published tag in a disposable project.
 
-Commit, push, tagging, publication, global installation, and user model configuration changes require their own authorization and are not part of the approved improvement run. The reserved first beta identifier remains `v0.1.0-beta.1`; do not present it as installable before publication. Never overwrite an existing tag or discard local Skill edits to recover.
+The first beta identifier is `v0.8.10-beta.1`, matching package version `0.8.10-beta.1`. Publish it as a GitHub Pre-release without the Latest designation. This is an explicitly approved beta publication with known evaluation gaps, not a passing behavioral release gate. Keep `evaluationPassed` and `releaseReady` unchanged. The package remains private to npm; distribution uses the Git repository and GitHub source archives.
+
+Prepare the final diff, local check results, and [release notes](releases/v0.8.10-beta.1.md) before requesting approval for the release commit, main push, annotated tag push, and public Pre-release. After approval, wait for Verify to pass on the exact release commit, tag that SHA, and run the installation suite against the remote tag before publishing:
+
+```bash
+npm run test:install -- --source https://github.com/soom-kang/refactor-me/tree/v0.8.10-beta.1
+```
+
+Create the Release with `--verify-tag --prerelease --latest=false` and the reviewed notes file. If a remote tag already exists or the expected branch SHA changes, stop and reconcile the state. If tag installation fails, retain the tag and report the failure instead of publishing or moving it. Do not present the beta as installable before publication. Never overwrite an existing tag or discard local Skill edits to recover. Global installation and user model configuration changes remain outside this release workflow.
