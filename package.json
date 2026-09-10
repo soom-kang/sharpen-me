@@ -1,0 +1,21 @@
+{
+  "name": "refactor-me",
+  "version": "0.8.10",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": ">=24.20.0"
+  },
+  "scripts": {
+    "verify": "node scripts/verify.mjs && node --test test/*.test.mjs",
+    "test:install": "node scripts/test-install.mjs",
+    "eval": "node scripts/evaluate.mjs",
+    "test:docker": "node scripts/test-docker.mjs",
+    "eval:summarize": "node scripts/summarize-v3.mjs"
+  },
+  "devDependencies": {
+    "skills": "1.5.25",
+    "yaml": "2.9.0"
+  }
+}
