@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, writeFile, readFile, rm } from 'node:fs/promises';
 import os from 'node:os';
@@ -10,11 +11,13 @@ import { cases } from '../evals/additional-cases.mjs';
 import { legacyCases } from '../evals/cases.mjs';
 const root = fileURLToPath(new URL('../', import.meta.url));
 
-test('the original tag normalizes to exactly the 24 current skill files', async () => {
+test('the original tag normalizes to the 24 files at the fixed rename commit', async () => {
   const prepared = await readBaseline(root);
   assert.equal(prepared.provenance.commit, baseline);
   assert.equal(Object.keys(prepared.original).length, 24);
-  assert.deepEqual(prepared.provenance.normalizedHashes, await sourceSnapshot(path.join(root, 'skills')));
+  for (const [file, hash] of Object.entries(prepared.provenance.normalizedHashes)) {
+    assert.equal(sha256(execFileSync('git', ['show', `1bfb92fae3199b07ac2acb30915922d27a1adc97:skills/${file}`], { cwd: root })), hash);
+  }
   for (const [old, next] of Object.entries(nameMapping)) {
     assert.deepEqual(prepared.original[`${old}/LICENSE`], prepared.normalized[`${next}/LICENSE`]);
   }

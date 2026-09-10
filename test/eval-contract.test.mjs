@@ -55,18 +55,18 @@ syncBuiltinESMExports();
   return { root, invoke };
 }
 
-test('dry run lists 288 unique invocations with only local Git reads, no provider calls, downloads or writes', async t => {
+test('dry run lists 576 unique invocations with only local Git reads, no provider calls, downloads or writes', async t => {
   const { root, invoke } = await isolatedCLI(t);
   const before = await sourceSnapshot(root);
   const result = invoke('evaluate.mjs', ['--dry-run']);
   assert.equal(result.status, 0, result.stderr);
   const plan = JSON.parse(result.stdout);
   assert.equal(plan.schemaVersion, 3);
-  assert.equal(plan.plannedCalls, 288);
-  assert.equal(plan.plannedNewCalls, 288);
-  assert.equal(new Set(plan.calls.map(call => call.id)).size, 288);
-  assert.equal(plan.calls.filter(call => call.provider === 'claude').length, 0);
-  for (const provider of ['codex']) {
+  assert.equal(plan.plannedCalls, 576);
+  assert.equal(plan.plannedNewCalls, 576);
+  assert.equal(new Set(plan.calls.map(call => call.id)).size, 576);
+  assert.equal(plan.calls.filter(call => call.provider === 'claude').length, 288);
+  for (const provider of ['codex', 'claude']) {
     const calls = plan.calls.filter(call => call.provider === provider);
     assert.equal(calls.length, 288);
     assert.deepEqual(new Set(calls.map(call => call.case)), new Set((await import('../evals/additional-cases.mjs')).cases.map(item => item.id)));
@@ -109,12 +109,12 @@ test('v3 archives with the old model policy stay unchanged and cannot resume', a
   assert.deepEqual(await sourceSnapshot(root),before);
 });
 
-test('contract 2 archives are rejected without modifying their saved results', async t => {
+for (const revision of [2, 3]) test(`contract ${revision} archives are rejected without modifying their saved results`, async t => {
   const { root, invoke } = await isolatedCLI(t);
   const archive = path.join(root, 'eval-results', 'old-policy');
   await mkdir(archive, { recursive: true });
   const config = JSON.parse(await readFile(new URL('../evals/config.json', import.meta.url)));
-  await writeFile(path.join(archive, 'run.json'), JSON.stringify({ schemaVersion: 3, config: { ...config, contractRevision: 2 } }));
+  await writeFile(path.join(archive, 'run.json'), JSON.stringify({ schemaVersion: 3, config: { ...config, contractRevision: revision } }));
   await writeFile(path.join(archive, 'reviewed-summary.json'), '{"historical":true}\n');
   const before = await sourceSnapshot(root);
   for (const [script, args] of [['evaluate.mjs', ['--resume', archive, '--dry-run']], ['summarize-v3.mjs', [archive]]]) {
@@ -159,11 +159,11 @@ test('new-contract resume validates normalized baseline and current inputs befor
   const initial = await sourceSnapshot(root);
   const success = invoke('evaluate.mjs', ['--resume', archive, '--dry-run']);
   assert.equal(success.status, 0, success.stderr);
-  assert.equal(JSON.parse(success.stdout).plannedNewCalls, 288);
+  assert.equal(JSON.parse(success.stdout).plannedNewCalls, 576);
   assert.deepEqual(await sourceSnapshot(root), initial);
   const summarized = invoke('summarize-v3.mjs', [archive]);
   assert.equal(summarized.status, 1, summarized.stderr);
-  assert.equal(JSON.parse(summarized.stdout).counts.NOT_RUN, 288);
+  assert.equal(JSON.parse(summarized.stdout).counts.NOT_RUN, 576);
   assert.equal(JSON.parse(summarized.stdout).releaseReady, false);
   const bad = structuredClone(metadata); bad.baselineNormalization.normalizedHashes['sharpen-clarify/SKILL.md'] = 'altered';
   await writeFile(runFile, JSON.stringify(bad));

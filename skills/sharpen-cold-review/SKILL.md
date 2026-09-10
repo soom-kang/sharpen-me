@@ -1,7 +1,7 @@
 ---
 name: sharpen-cold-review
 license: MIT
-description: Independently review an artifact without its author's reasoning. Use for a document comprehension cold read or an explicitly fresh code review; report not_run when genuine context isolation is unavailable.
+description: Review an artifact in a genuinely separate context for a document cold read or an explicitly independent code review. Use when independence is requested or supplied; ordinary diff review belongs to sharpen-review. Report not_run when isolation is unavailable.
 ---
 
 # Sharpen Cold Review
@@ -10,7 +10,9 @@ Independence is an execution condition, not a tone of voice. Review once by defa
 
 ## Inputs and mode
 
-Required: a bounded artifact and genuinely isolated context. Optional: mode, baseline, contracts, audience, review question, and permitted evidence paths.
+Required: a bounded artifact and genuinely isolated context. The artifact is the caller-supplied document, code, or diff. These skill instructions explain the procedure and are not themselves the review target unless the caller explicitly names them. Identify the target from the supplied path, attachment, or quoted boundaries; ask only if those identify materially different targets. Optional: mode, baseline, contracts, audience, review question, and permitted evidence paths.
+
+Use this procedure without loading the general review skill as a prerequisite. Independence changes the execution and evidence boundary; it does not require a second overlapping review workflow.
 
 An explicit mode wins. Otherwise use `code` for code-change correctness and `comprehension` for whether a document stands on its own. Ask only when mixed purposes require materially different evidence and the request does not choose.
 

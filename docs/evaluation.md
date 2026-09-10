@@ -1,7 +1,8 @@
 # Evaluation
 
-**Current sharpen-me status: NOT_RUN.** No provider evaluation has run under the renamed skills and `contractRevision: 3`. Earlier results below concern the files before renaming. The tables use current names for readability; [the name mapping](rename.md#names) identifies the original names. Historical counts, IDs and hashes are retained. Claude remains deferred and `releaseReady` remains false.
+**Current sharpen-me status: stopped; evaluation gate not met.** Contract revision 4 run `2026-09-10T03-04-01-035Z-v3` attempted 69 of 576 planned calls before a Claude weekly-limit response stopped dispatch. Reviewed totals are **45 PASS, 14 FAIL, 9 UNCLEAR, 508 NOT_RUN**. The latter includes one failed provider attempt and 507 never-called slots. Candidate-only totals are 22 PASS, 6 FAIL, 6 UNCLEAR and 254 NOT_RUN. `evaluationPassed` and `releaseReady` remain `false`.
 
+See the [v0.9.0-beta.1 Korean evaluation report](evaluation-v0.9.0-beta.1.ko.md) for provider/skill counts, failure evidence and unrun coverage. Automatic selection, default output and repetitions 2–3 did not run. The runner retained `MODEL_MISMATCH` for the quota response because it reported model ID `<synthetic>`; this is not evidence of task execution on a fallback model. No retry or resume was performed. Historical results below concern earlier files; [the name mapping](rename.md#names) identifies their original names.
 
 ## Historical Codex evaluation
 
@@ -34,17 +35,17 @@ No automatic-selection or default-output case ran in that historical archive. It
 | After | Complete current installation units, frozen before dispatch |
 | Cases | 16 original behavior + 8 regression + 8 natural output + 16 implicit selection |
 | Repetitions | Three per case/provider/version |
-| Calls | Current phase: 48 × 1 × 2 × 3 = 288 planned Codex calls; 290 historical attempts stay separate |
-| Claude | Deferred; configured `claude-opus-5 / medium`, no invocation in this phase |
+| Calls | Current phase: 48 × 2 × 2 × 3 = 576 planned calls; 290 historical attempts stay separate |
+| Claude | `claude-opus-5`, `medium` |
 | Codex | `gpt-6-astra`, `medium` |
 | Provider timeout | 180 seconds; no automatic retry or fallback |
-| Concurrency | One Codex invocation at a time |
+| Concurrency | One invocation per provider, at most two in flight |
 | Behavior checks | Node 24.20.0 Docker container, 30 seconds per check |
 | Grading | Version labels masked; no additional paid grader |
 
 The baseline commit is the existing `v0.8.10-beta.1` tag. The runner preserves its original 24 files, then changes only skill names, H1 titles and display metadata in a comparison copy. It records the original hashes, name mapping, normalization rules version and normalized hashes in `baselineNormalization`, bound to `inputHash`. A missing commit, incomplete installation unit or inconsistent normalization stops before any provider invocation.
 
-Both versions expose the same new names. For this rename, the normalized baseline and current skill files match. This comparison is a baseline for later instruction changes; it does not measure how renaming affects automatic selection. No new calls are authorized by the rename work. If a later 288-call run is authorized, cumulative attempts would be at most 578.
+Both versions expose the same new names. A local test compares the normalized baseline with the fixed rename commit `1bfb92fae3199b07ac2acb30915922d27a1adc97`; current skill improvements may differ from that baseline. This comparison does not measure the effect of renaming on automatic selection. The approved new-call cap is 576, for at most 866 cumulative attempts including history.
 
 [Case definitions](../evals/README.md) distinguish required JSON from natural responses. JSON retains existing type checks and permits extra fields. Automatic selection has independent positive/negative cases with balanced Korean/English prompts. No Skill identity or answer key appears in those task prompts. All eight Skills are installed for both versions. Successful source loading requires observed complete source content, not a similar-looking response.
 
@@ -52,24 +53,24 @@ Within each provider lane, before/after pairs alternate their leading version ac
 
 ## Result format
 
-New run files use `schemaVersion: 3` and `contractRevision: 3`. The runner and summarizer reject older contracts, including the previous v3 contract. Historical archives remain unchanged; use their frozen tools for historical inspection rather than converting or mixing evidence.
+New run files use `schemaVersion: 3` and `contractRevision: 4`. The runner and summarizer reject older contracts, including the previous v3 contract. Historical archives remain unchanged; use their frozen tools for historical inspection rather than converting or mixing evidence.
 
-- `run.json`: baseline revision, `baselineNormalization` provenance, configuration (including `contractRevision: 3`, `modelPolicy`, and `selectedProviders`), input hash, working/frozen file hashes, selected CLI versions, Docker ID/digests, Node version, and declared matrix.
+- `run.json`: baseline revision, `baselineNormalization` provenance, configuration (including `contractRevision: 4`, `modelPolicy`, and `selectedProviders`), input hash, working/frozen file hashes, selected CLI versions, Docker ID/digests, Node version, and declared matrix.
 - `frozen/original/skills/`: unchanged baseline bytes from Git.
 - `frozen/before/skills/` and `frozen/after/skills/`: whole installation units, including metadata and license.
 - `frozen/scripts/`, `frozen/evals/`, and `frozen/cases.json`: the evaluator and evaluator-only criteria.
 - `dispatch.json`: unique invocation IDs, order, and start times, written before provider spawn.
-- `records/provider--version--case-id--rN.json`: response text, parsed JSON when requested, source-loading evidence, usage, duration, changed files, host checks, execution status, and evidence hash.
+- `records/provider--version--case-id--rN.json`: response text, parsed JSON when requested, source-loading evidence, paired command/result evidence, usage, duration, changed files, host checks, execution status, and evidence hash.
 - `blind-review.json`: opaque identifiers and evaluator evidence, without provider/version/repetition labels.
 - `summary.json` and `reviewed-summary.json`: category and repetition counts, scope violations, time/usage, selection regressions, and readiness.
 
-Responses are retained as text after removing local fixture paths and credential-shaped values. Full provider initialization streams and account/environment details are not archived. Review packets include expected facts; providers do not receive them. Grading instructions and commands are in [Maintenance](maintenance.md#blind-review-and-summary).
+Responses are retained as text after removing local fixture paths and credential-shaped values. Commands and results each have an 8 KiB limit after redaction, with explicit missing and truncation markers. These incomplete records cannot establish a PASS. Full provider initialization streams and account details are not archived. Review packets include expected facts; providers do not receive them. Grading instructions and commands are in [Maintenance](maintenance.md#blind-review-and-summary).
 
 `baselineChecks` means fixture checks before the provider's edits, not results of the before Skill version. `afterChecks` means checks after the same call. Do not conflate those fields with `version: before/after`.
 
 ## Review and release criteria
 
-The historical `v0.8.10-beta.1` tag contains the original skill names. Its validation does not certify the renamed installation units. No new release is part of this rename.
+The historical `v0.8.10-beta.1` tag contains the original skill names. Its validation does not certify the renamed installation units. The v0.9.0-beta.1 candidate is intended for a Pre-release with disclosed failures or unresolved evidence. Publishing it does not change failed evaluation gates; it must not be marked Latest.
 
 The historical baseline commit `09bb976` is absent from the current repository history. The public checkout alone cannot reproduce the original before/after evaluation. Local frozen snapshots remain separate from the distribution; the rename does not restore that history or rerun those evaluations. The current contract uses the available `87b2e06` baseline instead.
 

@@ -10,7 +10,7 @@ export function assertV3(value) {
 }
 export function selectedProviders(config) {
   const selected = config.selectedProviders;
-  if (config.contractRevision !== 3 || config.modelPolicy !== 'primary_response_only') {
+  if (config.contractRevision !== 4 || config.modelPolicy !== 'primary_response_only') {
     throw Object.assign(new Error('Evaluation policy differs; preserve the old archive and start a separately authorized run'), { code: 'UNSUPPORTED_EVALUATION_POLICY' });
   }
   if (!Array.isArray(selected) || !selected.length || new Set(selected).size !== selected.length ||

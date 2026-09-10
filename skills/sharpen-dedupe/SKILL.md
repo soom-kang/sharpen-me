@@ -35,7 +35,7 @@ Required: suspected duplicates or a bounded search area. Optional: callers, cont
 
 ## Output and stopping
 
-Honor the caller's format. Otherwise provide an occurrence map with location, semantic label, action, evidence, and reason; the owner proposal or reason to keep separate; and unresolved gaps. Distinguish proposed edits from actual edits and executed checks. A no-op is valid.
+Honor the caller's format. Otherwise use a short table or a few paragraphs identifying the compared locations, their semantic relationship, the proposed action and its evidence. Include the owner proposal and unresolved gaps only where they affect the decision. The procedure steps are reasoning steps, not required report sections. Distinguish proposed edits from actual edits and executed checks. A justified no-op may be reported in a few sentences.
 
 Stop after the audit or verified authorized change. Stop dependent edits for missing evidence, conflicting requirements, or scope expansion. Do not imply universal equivalence from finite checks or alter public contracts, add production dependencies, commit, or deploy as incidental deduplication.
 

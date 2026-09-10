@@ -1,7 +1,7 @@
 ---
 name: sharpen-review
 license: MIT
-description: Review code changes or architecture artifacts for actionable defects using relevant failure modes and evidence. Use for diff, pull request, compatibility, or design review; scope clarification and independent cold review are separate tasks.
+description: Review code changes or architecture artifacts for actionable defects using relevant failure modes and evidence. Use for diff, pull request, compatibility, or design review; use sharpen-cold-review instead when the caller requires a separate context or supplies a cold-read assignment. Scope clarification is a separate task.
 ---
 
 # Sharpen Review
@@ -10,7 +10,7 @@ Find supported defects within the supplied scope. Selection of this skill is not
 
 ## Inputs
 
-Required: a change, design, or bounded artifact. Optional: contracts, baseline, review question, severity conventions, and verification results. Default to read-only review.
+Required: a change, design, or bounded artifact. Optional: contracts, baseline, review question, severity conventions, and verification results. Default to read-only review. When this is explicitly an independent cold review, select that procedure instead of loading both skills for the same review.
 
 ## Procedure
 

@@ -187,7 +187,7 @@ export async function main(args = process.argv.slice(2)) {
       await assertInputs();
       await markDispatch(item); observation.providerCalled = true;
       const result = await run(providerCommand(provider, testCase, cwd, config), { cwd, input: taskPrompt(provider, testCase), timeoutMs: config.timeoutMs });
-      Object.assign(observation, observeV3(provider, result, testCase, sources, config.providers[provider].model));
+      Object.assign(observation, observeV3(provider, result, testCase, sources, config.providers[provider].model, cwd));
       const after = await fixtureSnapshot(cwd);
       observation.changedPaths = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(p => before[p] !== after[p]);
       observation.forbiddenChanges = observation.changedPaths.filter(p => !testCase.mutablePaths.includes(p));

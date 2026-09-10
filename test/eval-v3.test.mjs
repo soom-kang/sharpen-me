@@ -16,7 +16,7 @@ const identity = item => ({schemaVersion:3,id:idOf(item),provider:item.provider,
 
 test('renamed 48-case expectations retain their approved hash and category balance', () => {
   assert.equal(sha256(JSON.stringify(cases)), '8eccbb25a9d41cabc84d61fecc8bb03d549c93366b0333f39479d639b8511a77');
-  assert.equal(matrix.length,288);
+  assert.equal(matrix.length,576);
   assert.equal(cases.filter(c=>c.language==='ko').length,8);
   assert.equal(cases.filter(c=>c.language==='en').length,8);
   for (const provider of selectedProviders(config)) {
@@ -134,7 +134,7 @@ test('blind review hides version identity and binds grades to evidence; unrun bl
   const grade={blindId:blindId(record),evidenceHash:record.evidenceHash,semantic:'PASS',rationale:'Evidence supports the required facts.',missingFacts:[],unsupportedClaims:[],scopeViolations:[]};
   const metadata={schemaVersion:3,config,inputHash:'frozen'};
   const summary=summarize(metadata,[record],cases,[grade]);
-  assert.equal(summary.attemptedCalls,1);assert.equal(summary.counts.PASS,1);assert.equal(summary.counts.NOT_RUN,287);assert.equal(summary.releaseReady,false);
+  assert.equal(summary.attemptedCalls,1);assert.equal(summary.counts.PASS,1);assert.equal(summary.counts.NOT_RUN,575);assert.equal(summary.releaseReady,false);
   assert.throws(()=>summarize(metadata,[record],cases,[{...grade,evidenceHash:'drift'}]),/drift/);
   assert.throws(()=>summarize(metadata,[record],cases,[{...grade,unsupportedClaims:['invented']}]),/contradicts/);
 });
@@ -182,7 +182,8 @@ test('Codex only trusts structured agent-message model identity, never prose or 
 
 test('Codex-only CLI preflight never needs an installed Claude CLI',async()=>{
   const {versions}=await import('../scripts/eval-v3.mjs');const calls=[];
-  const actual=await versions(selectedProviders(config),async argv=>{
+  const codexConfig={...config,selectedProviders:['codex'],maxCalls:288};
+  const actual=await versions(selectedProviders(codexConfig),async argv=>{
     calls.push(argv);assert.equal(argv[0],'codex');return {code:0,stdout:'codex-test'};
   });
   assert.deepEqual(calls,[['codex','--version']]);assert.deepEqual(actual,{codex:'codex-test'});
@@ -193,7 +194,7 @@ test('Codex-only CLI preflight never needs an installed Claude CLI',async()=>{
 
 test('a complete selected-provider evaluation does not certify a deferred provider',()=>{
   const subset=[{...normal,category:'behavior'}];
-  const single={...config,repeats:1,maxCalls:2};
+  const single={...config,selectedProviders:['codex'],repeats:1,maxCalls:2};
   const items=matrixFor(subset,single);
   const records=items.map(item=>seal({...identity(item),providerCalled:true,status:'REVIEW_REQUIRED',providerCompleted:true,processExitCode:0,
     output:JSON.stringify({decision:'done',findings:[],evidence:[],limitations:[],changes:[]}),skillRead:true,

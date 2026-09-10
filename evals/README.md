@@ -1,6 +1,6 @@
 # Evaluation cases
 
-The v3 matrix has 48 synthetic cases across eight Skills. The complete design covers two providers, baseline and current instructions, three times. The current config selects Codex only: 288 new calls. Claude is deferred. Cases are inputs and grading criteria, not observed results.
+The v3 matrix has 48 synthetic cases across eight Skills. The complete design covers two providers, baseline and current instructions, three times. Contract revision 4 selects Codex (`gpt-6-astra / medium`) and Claude Code (`claude-opus-5 / medium`): 576 new calls. The 290 historical attempts remain separate. Cases are inputs and grading criteria, not observed results.
 
 | Category | Cases | Purpose |
 | --- | ---: | --- |
@@ -25,7 +25,7 @@ Fresh-review fixtures explicitly distinguish a host-isolated invocation from an 
 
 Compare fixture bytes before and after the call. Any write outside `mutablePaths` fails scope. Do not run edited checks after a forbidden write or a symlink/special-file change. Required behavior checks run in Docker with the Node 24.20.0 boundary described in [Maintenance](../docs/maintenance.md#docker-checks), never through an unrestricted host fallback.
 
-A successful response or passing behavior test alone does not prove requested consolidation. Review changed files and required facts. Record missing facts, unsupported claims, scope violations, and uncertainty. Actual complete Skill-source loading must be observed for positive selection; merely claiming to use a Skill is insufficient.
+A successful response or passing behavior test alone does not prove requested consolidation. Review changed files and required facts. Record missing facts, unsupported claims, scope violations, and uncertainty. Actual complete Skill-source loading must be observed for positive selection; merely claiming to use a Skill is insufficient. Completed command events retain paired commands, exit status and results after redaction. Commands and results each have an 8 KiB limit; missing or truncated evidence is marked and cannot establish a PASS. Initialization streams and account metadata are not retained.
 
 ## Fixture freeze
 
@@ -40,7 +40,7 @@ The following hashes identify the historical fixtures frozen before the skill ed
 
 A justified future fixture correction needs a documented diff and separately agreed evaluation. Historical v2 archives remain unchanged and cannot enter v3 results. [Evaluation](../docs/evaluation.md) describes current observations and remaining limits.
 
-The renamed fixture uses `contractRevision: 3`. New normalized hashes are recorded below; they are not replacements for the historical evidence above. Before and after both use the new skill names. Existing v3 contract 2 archives cannot be resumed or summarized with this contract.
+The unchanged renamed fixtures now run under observation `contractRevision: 4`. New normalized hashes are recorded below; they are not replacements for the historical evidence above. Before and after both use the new skill names. Existing v3 contract 2 or 3 archives cannot be resumed or summarized with this contract.
 
 | Current input | SHA-256 |
 | --- | --- |

@@ -8,6 +8,7 @@ export function blindPacket(records, cases) {
     const testCase = byCase.get(record.case);
     return { blindId: blindId(record), evidenceHash: record.evidenceHash, task: testCase.prompt,
       expected: testCase.expected, outputMode: testCase.output, output: record.output ?? '',
+      executionEvidence: record.executionEvidence ?? [],
       response: record.response ?? null, loadingEvidence: record.loadingEvidence ?? [],
       baselineChecks: record.baselineChecks ?? [], afterChecks: record.afterChecks ?? [],
       changedFiles: record.changedFiles ?? {}, forbiddenChanges: record.forbiddenChanges ?? [],
@@ -20,6 +21,7 @@ export function structuralStatus(record, testCase) {
   if (!record || !record.providerCalled) return 'NOT_RUN';
   if (record.status !== 'REVIEW_REQUIRED') return record.status === 'PASS' ? 'UNCLEAR' : record.status;
   if (!record.providerCompleted || record.processExitCode !== 0) return 'NOT_RUN';
+  if (record.executionEvidence?.some(e => e.command.missing || e.output.missing || e.command.truncated || e.output.truncated)) return 'UNCLEAR';
   if (!record.output?.trim()) return 'FAIL';
   if (testCase.output === 'json') { try { parseResponse(record.output); } catch { return 'FAIL'; } }
   if (testCase.invocation === 'explicit' && (!record.skillRead || !record.loadingEvidence?.some(e => e.skill === testCase.skill && e.fullSourceObserved))) return 'UNCLEAR';

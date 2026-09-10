@@ -1,6 +1,6 @@
 # Move to sharpen-me
 
-The project was named refactor-me through `v0.8.10-beta.1`. The current checkout provides eight renamed skills; it does not install aliases for the previous names. The skill procedures and discovery descriptions are unchanged by this rename.
+The project was named refactor-me through `v0.8.10-beta.1`. The current checkout provides eight renamed skills; it does not install aliases for the previous names. The rename commit preserved skill procedures. The subsequent v0.9.0-beta.1 candidate includes the instruction changes listed in its release notes.
 
 ## Names
 
@@ -19,7 +19,7 @@ The project was named refactor-me through `v0.8.10-beta.1`. The current checkout
 
 First inspect the installed paths with `npx skills list --agent codex claude-code`. Save any local edits outside the installed skill directories before removing them. Reconcile those edits with the new files after installation; do not overwrite them with an update command.
 
-After the owner renames the GitHub repository and publishes the renamed files, run these commands from the project where you use the skills:
+The GitHub repository is now `soom-kang/sharpen-me`. Run these commands from the project where you use the skills:
 
 ```bash
 npx skills remove rm-scope rm-review rm-challenge rm-assess \

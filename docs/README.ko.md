@@ -9,13 +9,13 @@ Codex와 Claude Code에서 요청을 정리하고 작업을 검토할 때 쓰는
 
 구현 전에 요구사항을 정리하거나 코드 변경을 검토할 때, 중복 코드를 공통 함수로 묶어도 될지 판단할 때 사용합니다. 필요한 스킬을 골라 작업을 요청하세요. 각 스킬은 정해진 절차에 따라 관련 파일과 근거를 확인하고 결과를 정리한 뒤 작업을 마칩니다.
 
-**상태: 베타.**
+**상태: 베타, 행동 평가 gate 미통과.** `v0.9.0-beta.1` 후보를 Codex와 Claude Code로 평가했으나 Claude의 주간 한도 응답으로 69회 호출 후 중단했습니다. 계획된 576개 중 **PASS 45 / FAIL 14 / UNCLEAR 9 / NOT_RUN 508**입니다. 개선본에도 실패 6개와 미확인 6개가 남았습니다. 독립 검토 대상 탐색, 근거 없는 결함 지적, 실행 승인 조건 누락 등의 실패가 있으며 자동 선택과 2·3회차 반복은 실행하지 못했습니다. [평가 보고서](evaluation-v0.9.0-beta.1.ko.md)에서 범위와 한계를 확인하세요. 로컬 검사 통과가 행동 품질을 보장하지는 않습니다.
 
 [English](../README.md) · [Releases](https://github.com/soom-kang/sharpen-me/releases) · [설계](design.md) · [평가](evaluation.md) · [유지보수](maintenance.md)
 
 ## 설치
 
-새 이름은 현재 checkout에 반영했습니다. 원격 설치는 관리자가 GitHub 저장소 이름을 바꾸고 이 파일들을 게시한 뒤 사용할 수 있습니다. 기존 `v0.8.10-beta.1` 태그에는 이전 이름이 들어 있습니다.
+GitHub 저장소는 `soom-kang/sharpen-me`입니다. 로컬에 남아 있는 `v0.8.10-beta.1` 태그에는 이전 이름이 들어 있습니다.
 
 Node.js 24.20.0 이상이 필요합니다. 스킬을 사용할 프로젝트에서 실행하세요.
 
@@ -30,6 +30,14 @@ Codex와 Claude Code에 8개를 모두 설치하려면 다음 명령을 사용�
 ```bash
 npx skills add soom-kang/sharpen-me --skill '*' --agent codex claude-code
 ```
+
+`v0.9.0-beta.1`은 **Pre-release 게시 후** 다음 명령으로 버전을 고정해 설치합니다.
+
+```bash
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1 --skill '*' --agent codex claude-code
+```
+
+후보 버전의 검사 결과와 한계는 [릴리스 노트](releases/v0.9.0-beta.1.md)에 기록합니다. 게시 전에는 branch 설치로 현재 `main`에 올라간 파일을 받습니다.
 
 기존 설치가 있다면 로컬 수정본을 먼저 보관하세요. 아래 명령으로 이전 이름을 제거한 뒤 새 이름을 설치하고 **Project** 범위를 선택합니다.
 

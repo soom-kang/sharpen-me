@@ -9,13 +9,13 @@ Eight skills for clarifying requests, reviewing work, assessing risk, and refini
 
 Use sharpen-me to clarify a request before implementation, review a code change, or decide whether duplicated code belongs in a shared function. Choose the skill for your task. Each follows a defined procedure, checks the relevant files and evidence, and stops after reporting its result.
 
-**Status: beta.**
+**Status: beta; evaluation gate not met.** The `v0.9.0-beta.1` candidate was evaluated with Codex and Claude Code, then stopped after 69 calls when Claude returned a weekly-limit notice. Across 576 planned items: **45 PASS, 14 FAIL, 9 UNCLEAR, 508 NOT_RUN**. The candidate alone has 6 failures and 6 unclear results. Cold-review target handling, unsupported findings and execution-approval conditions still have failures. Automatic selection and repetitions 2–3 were not run. See the [evaluation report](docs/evaluation-v0.9.0-beta.1.ko.md); local validation is not a behavior guarantee.
 
 [한국어](docs/README.ko.md) · [Releases](https://github.com/soom-kang/sharpen-me/releases) · [Design](docs/design.md) · [Evaluation](docs/evaluation.md) · [Maintenance](docs/maintenance.md)
 
 ## Install
 
-The new names are prepared in this checkout. Remote installation requires the owner to rename the GitHub repository and publish these files. The existing `v0.8.10-beta.1` tag contains the previous names. See [Rename and existing installations](docs/rename.md).
+The repository is `soom-kang/sharpen-me`. The local `v0.8.10-beta.1` tag contains the previous names. See [Rename and existing installations](docs/rename.md).
 
 Use Node.js 24.20.0 or later. From the project where you will use the skills:
 
@@ -30,6 +30,14 @@ To install all eight for Codex and Claude Code:
 ```bash
 npx skills add soom-kang/sharpen-me --skill '*' --agent codex claude-code
 ```
+
+For the `v0.9.0-beta.1` candidate, use this pinned command **after its Pre-release is published**:
+
+```bash
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1 --skill '*' --agent codex claude-code
+```
+
+[Release notes](docs/releases/v0.9.0-beta.1.md) record the candidate's checks and limitations. Until publication, branch installation uses the files already on `main`.
 
 To install only `sharpen-review` for both agents:
 

@@ -1,7 +1,7 @@
 {
   "timeoutMs": 180000,
   "repeats": 3,
-  "maxCalls": 288,
+  "maxCalls": 576,
   "providers": {
     "codex": {
       "model": "gpt-6-astra",
@@ -13,9 +13,10 @@
     }
   },
   "selectedProviders": [
-    "codex"
+    "codex",
+    "claude"
   ],
   "modelPolicy": "primary_response_only",
-  "contractRevision": 3,
+  "contractRevision": 4,
   "historicalAttemptedCalls": 290
 }

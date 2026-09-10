@@ -1,3 +1,4 @@
+import { executionEvidence } from './eval-execution.mjs';
 import { observe, parseEvents } from './eval-observation.mjs';
 export function modelEvidence(provider, events, requestedModel) {
   const primary = new Set(), usageModels = new Set(), evidence = [];
@@ -24,10 +25,11 @@ export function modelEvidence(provider, events, requestedModel) {
     modelEvidence: primary.size ? 'provider_reported' : 'explicit_cli_argument_only',
     primaryModelMismatch: [...primary].some(name => !matches(name)) };
 }
-export function observeV3(provider, result, testCase, sources, model) {
+export function observeV3(provider, result, testCase, sources, model, fixtureRoot = '<fixture>') {
   const observation = observe(provider, result, testCase.skill, sources[testCase.skill], { output: testCase.output, requireSkill: false });
   const loaded = [];
   const events = parseEvents(result.stdout);
+  observation.executionEvidence = executionEvidence(provider, events, fixtureRoot);
   for (const [name, contents] of Object.entries(sources)) {
     const direct = observe(provider, result, name, contents, { output: 'text', requireSkill: false });
     // Claude's native Skill tool may return the full source instead of issuing Read.
