@@ -1,6 +1,6 @@
 # Evaluation cases
 
-The v3 matrix has 48 synthetic cases across eight Skills. The complete design covers two providers, baseline and current instructions, three times. Contract revision 4 selects Codex (`gpt-6-astra / medium`) and Claude Code (`claude-opus-5 / medium`): 576 new calls. The 290 historical attempts remain separate. Cases are inputs and grading criteria, not observed results.
+The v3 matrix defines 48 synthetic cases across eight skills. Contract revision 4 selects Codex (`gpt-6-astra / medium`) and Claude Code (`claude-opus-5 / medium`). Each runs baseline and current instructions three times: 576 new calls. Keep the 290 historical attempts separate. These cases define inputs and grading criteria; see [Evaluation](../docs/evaluation.md) for observed results.
 
 | Category | Cases | Purpose |
 | --- | ---: | --- |
@@ -9,7 +9,7 @@ The v3 matrix has 48 synthetic cases across eight Skills. The complete design co
 | `default-output` | 8 | A normal explicit invocation without a caller JSON schema |
 | `selection` | 16 | Positive and clearly irrelevant negative implicit prompts; eight Korean and eight English |
 
-[Original cases](cases.mjs) export `legacyCases` and their behavior descriptors. [Additional cases](additional-cases.mjs) exports the complete `cases` array. Expected facts remain evaluator-only.
+The [original case module](cases.mjs) exports `legacyCases` and their behavior descriptors. The [additional case module](additional-cases.mjs) exports the complete `cases` array. Expected facts remain evaluator-only.
 
 ## Input contract
 
@@ -25,11 +25,16 @@ Fresh-review fixtures explicitly distinguish a host-isolated invocation from an 
 
 Compare fixture bytes before and after the call. Any write outside `mutablePaths` fails scope. Do not run edited checks after a forbidden write or a symlink/special-file change. Required behavior checks run in Docker with the Node 24.20.0 boundary described in [Maintenance](../docs/maintenance.md#docker-checks), never through an unrestricted host fallback.
 
-A successful response or passing behavior test alone does not prove requested consolidation. Review changed files and required facts. Record missing facts, unsupported claims, scope violations, and uncertainty. Actual complete Skill-source loading must be observed for positive selection; merely claiming to use a Skill is insufficient. Completed command events retain paired commands, exit status and results after redaction. Commands and results each have an 8 KiB limit; missing or truncated evidence is marked and cannot establish a PASS. Initialization streams and account metadata are not retained.
+1. Review changed files and required facts. A successful response or passing behavior test alone does not prove consolidation. Record missing facts, unsupported claims, scope violations, and uncertainty.
+2. Verify complete skill-source loading for positive selection. A claim to use a skill is insufficient.
+3. Inspect paired commands, exit status, and results after redaction. Commands and results each have an 8 KiB limit. Missing or truncated evidence is marked and cannot establish a PASS. Initialization streams and account metadata are not retained.
 
 ## Fixture freeze
 
 The following hashes identify the historical fixtures frozen before the skill edits on 2026-09-09. The rename preserves tasks, input files, permitted edits and expected facts, but changes skill identities and name-derived case IDs. Do not change expected facts in response to model outcomes.
+
+<details>
+<summary>Historical fixture hashes</summary>
 
 | Input | SHA-256 |
 | --- | --- |
@@ -37,6 +42,8 @@ The following hashes identify the historical fixtures frozen before the skill ed
 | Complete 48 normalized cases | `c6d61b693c93ffdfca13937f79fefa2a402866bcbd3d86e602a17449b593d6dd` |
 | Original case module after exports were separated | `e2be9d5f10a6c4dfb84620b09bc96fda416a49e63315f45c8648bb20ee86c7e3` |
 | Additional case module | `a42d6fbdb01ea9ca438783d5047249981751e104ba1238ce9859efcaf0453ba6` |
+
+</details>
 
 A justified future fixture correction needs a documented diff and separately agreed evaluation. Historical v2 archives remain unchanged and cannot enter v3 results. [Evaluation](../docs/evaluation.md) describes current observations and remaining limits.
 

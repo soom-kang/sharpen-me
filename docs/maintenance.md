@@ -1,31 +1,37 @@
 # Maintenance
 
-Change an existing Skill for a concrete failure or need. Keep each installation unit self-contained and preserve unrelated working-tree changes.
+Run the local checks before changing a skill. Address a concrete failure or need, keep each installation unit self-contained, and preserve unrelated working-tree changes.
 
 ## Local checks
 
-Use Node **24.20.0** for development and CI. The installation minimum is also 24.20.0. The existing development dependencies remain pinned; no production dependency is added.
+1. Use **Node.js 24.20.0** for development and CI. This is also the installation minimum; keep the pinned development dependencies.
+2. From the repository checkout, run:
 
-```bash
-npm ci --ignore-scripts
-npm run verify
-npm run test:install
-npm run eval -- --dry-run
-git diff --check
-```
+   ```bash
+   npm ci --ignore-scripts
+   npm run verify
+   npm run test:install
+   npm run eval -- --dry-run
+   git diff --check
+   ```
 
-`verify` checks packaging, license copies, metadata, references, syntax, and local regression tests. It validates 48 frozen cases and the selected-provider matrix; the current two-provider phase has 576 calls. No test is skipped because Node is below 26. The installation suite covers whole-package and individual installation in disposable projects, copy and symlink modes, reinstall, removal, and coexistence.
+3. Inspect failures before proceeding. `verify` checks packaging, license copies, metadata, links, syntax, regression tests, and the declared 48-case matrix. The installation suite covers whole and individual installs, copy and symlink modes, reinstall, removal, and coexistence.
 
-Dry run performs no provider invocation, download, Docker operation, or archive write. It does not establish model behavior. The `skill-creator` validator can additionally check each Skill directory when available locally.
+Dry run lists the plan without provider calls, downloads, Docker operations, or archive writes. Local checks do not measure model behavior. Tests do not skip because Node is below 26. You can also run the `skill-creator` validator if it is available locally.
 
 ## Docker checks
 
-Prepare the official image before live evaluation:
+1. Prepare the image before live evaluation:
 
-```bash
-docker pull node:24.20.0-bookworm-slim
-npm run test:docker
-```
+   ```bash
+   docker pull node:24.20.0-bookworm-slim
+   npm run test:docker
+   ```
+
+2. Stop if the daemon, image, or isolation checks fail. Do not replace this boundary with an unrestricted host check.
+
+<details>
+<summary>What the Docker check verifies and isolates</summary>
 
 The probe verifies the actual Node version, image digest, nonroot execution, permitted fixture reads, denied writes, denied child processes and workers, and unavailable external network access. An unavailable Docker daemon or image is an environment failure, never a pass or permission-free fallback.
 
@@ -33,50 +39,81 @@ Checks mount only the disposable fixture, read-only. They do not mount a home di
 
 The provider CLIs run on the host with their configured sandbox and file tools. This is a different boundary from the container that executes host behavior checks.
 
+</details>
+
 ## Live evaluation and resume
 
-The approved configuration is in [evals/config.json](../evals/config.json). It selects Codex `gpt-6-astra / medium` and Claude Code `claude-opus-5 / medium`: 180 seconds per call, three repetitions, maximum 576 new calls. The 290 historical attempts remain separate, for at most 866 cumulative attempts. No automatic retry, model fallback, or extra paid grading call is available.
+1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-astra / medium` and Claude Code `claude-opus-5 / medium`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available.
+2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
+3. Start the agreed evaluation:
 
-```bash
-npm run eval
-npm run eval -- --resume eval-results/<v3-directory> --dry-run
-npm run eval -- --resume eval-results/<v3-directory>
-```
+   ```bash
+   npm run eval
+   ```
 
-The current contract uses `contractRevision: 4` and `modelPolicy: primary_response_only`. It checks structured primary assistant model fields and stores aggregate model usage separately. Extra models in usage are not a fallback finding. Unavailable returned identity is explicitly recorded as `explicit_cli_argument_only`; prose is never model evidence. Existing archives without this policy are preserved and rejected before execution or rewriting.
+4. On interruption, inspect the archive before resuming. Authentication, quota, model mismatch, isolation failure, or harness failure stops new dispatch; an in-flight peer may finish. Timeouts retain their evidence without retry.
+5. To resume, first inspect the remaining plan, then run only with unchanged inputs and environment:
 
-A new run freezes complete before/after Skill directories, case data, runner code, configuration, CLI versions, and Docker image identity. Do not edit these inputs during a run. The original tree is extracted from `87b2e064ad0d5ba7b38a1f7c194929fda980cf0a` without changing the checkout. The runner retains the original bytes under `frozen/original/skills/` and normalizes identity text into `frozen/before/skills/`. The original hashes, normalized hashes, mapping and rules version are bound to the run input hash. Both versions install the new names. See [Evaluation](evaluation.md#current-matrix-and-method) for the comparison limits. Each selected provider runs serially. At most one call per provider is in flight, for two calls total. Paired version order is balanced and actual dispatch order is saved before spawning.
+   ```bash
+   npm run eval -- --resume eval-results/<v3-directory> --dry-run
+   npm run eval -- --resume eval-results/<v3-directory>
+   ```
 
-Authentication, quota, model mismatch, or isolation/harness failure stops further dispatch; an already in-flight peer can finish. Timeout evidence is retained without retry. Resume accepts only the same v3 inputs and environment and selects **never-called** slots. Attempted calls, including interrupted calls, retain their evidence. An incomplete dispatch journal blocks automatic resume because the attempt count is uncertain. Repeating an attempted call or changing inputs requires separate agreement and a new evaluation, not a recheck flag.
+Resume selects **never-called slots**. Attempted or interrupted calls retain their evidence. An incomplete dispatch journal blocks automatic resume. Repeating a call or changing inputs needs separate agreement and a new evaluation, not a recheck flag.
 
-The original v2 archive helpers and their tests remain for historical inspection. `scripts/summarize-eval.mjs` is v2-only; the main evaluation CLI never runs or resumes v2. Do not convert or combine archives.
+<details>
+<summary>Frozen baseline, model identity, and archive compatibility</summary>
+
+The current policy is `contractRevision: 4` with `modelPolicy: primary_response_only`. Structured primary assistant model fields establish returned identity; aggregate model usage remains separate. Extra models in usage do not establish fallback. Without a returned identity, record `explicit_cli_argument_only`; prose is not model evidence.
+
+Extract the baseline from `87b2e064ad0d5ba7b38a1f7c194929fda980cf0a` without changing the checkout. Preserve original bytes in `frozen/original/skills/` and normalize names in `frozen/before/skills/`. Original and normalized hashes, the name mapping, and rules version bind to the input hash. Both versions install the new names; see [comparison limits](evaluation.md#current-matrix-and-method).
+
+Each provider runs one call at a time, at most two in flight overall. Version order is balanced, and the runner records dispatch order before spawning.
+
+Older contracts remain unchanged and are rejected before execution or rewriting. The retained v2 helpers are for historical inspection: `scripts/summarize-eval.mjs` is v2-only, and the main CLI neither runs nor resumes v2. Do not convert or combine archives.
+
+</details>
 
 ## Blind review and summary
 
-Review `blind-review.json` before opening the version-labeled records. It contains expected facts, response text, changed files, and execution evidence, indexed by opaque IDs. No provider/version/repetition label is included. Command evidence pairs each command with its completion status and result. The recorder redacts text before applying separate 8 KiB command and result limits. Missing or truncated evidence stays marked and cannot establish a PASS; it does not by itself prove a skill failure. Style and content can still suggest a version, so this is label masking rather than a claim of perfect blinding.
+1. Read `blind-review.json` before version-labeled records. Opaque IDs hide provider, version, and repetition labels; response content may still reveal them. Review the expected facts, response, changed files, and execution evidence.
+2. Write a grade for each observation, bound to its `blindId` and `evidenceHash`. Use `PASS`, `FAIL`, `UNCLEAR`, or `NOT_RUN`; include a rationale and any missing facts, unsupported claims, or scope violations.
+3. Summarize the reviewed evidence:
 
-Write an array of grades with `blindId`, `evidenceHash`, `semantic`, `rationale`, `missingFacts`, `unsupportedClaims`, and `scopeViolations`. `semantic` is `PASS`, `FAIL`, `UNCLEAR`, or `NOT_RUN`. The three issue fields contain string arrays. A PASS cannot contain unresolved defects.
+   ```bash
+   npm run eval:summarize -- eval-results/<v3-directory> /path/to/blind-grades.json
+   ```
 
-```bash
-npm run eval:summarize -- eval-results/<v3-directory> /path/to/blind-grades.json
-```
+4. Inspect both `evaluationPassed` and `releaseReady`. The first covers the selected providers; the second requires both Codex and Claude. A selected-provider pass can produce exit code 0 while a deferred provider keeps release readiness false.
 
-`evaluationPassed` reports whether the selected-provider comparison satisfies its checks; `releaseReady` additionally requires both Codex and Claude. The summary CLI exits successfully for a passing selected-provider phase even when Claude remains deferred.
+Semantic grades cannot override structural failures. Missing evidence remains `UNCLEAR` or `NOT_RUN`. Keep raw provider streams and private environment details out of public reports.
 
-The v3 summary checks source and observation hashes, identities, required checks, output contracts, scope evidence, and grade binding. Semantic grades cannot waive structural failures. Missing evidence stays `UNCLEAR` or `NOT_RUN`; it cannot become a pass because the answer sounds plausible. Keep raw provider streams and private environment details out of public reports.
+<details>
+<summary>Grade fields and evidence checks</summary>
+
+Each grade has `blindId`, `evidenceHash`, `semantic`, `rationale`, `missingFacts`, `unsupportedClaims`, and `scopeViolations`. The last three are string arrays; a PASS cannot contain unresolved defects.
+
+Command evidence pairs each command with its completion status and result. Redact before applying separate 8 KiB limits to commands and results. Missing or truncated evidence cannot establish a PASS, but does not by itself prove a skill failure.
+
+The summary validates source and observation hashes, identities, required checks, output contracts, scope evidence, and grade binding. See [Evaluation](evaluation.md#review-and-release-criteria) for the full criteria.
+
+</details>
 
 ## Release and recovery
 
-Packaging success is separate from behavioral validation. Preserve the beta notice and report unresolved evaluation results in [Evaluation](evaluation.md). Before an authorized release, compare the current Skill bytes with the evaluated after snapshot, inspect the final diff, and verify installation from the exact published tag in a disposable project.
+[`v0.9.0-beta.1`](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1) is published as a Pre-release. The repository is `soom-kang/sharpen-me`; the package remains private to npm. The local historical `v0.8.10-beta.1` tag contains the old names and stays unchanged.
 
-The local `v0.8.10-beta.1` tag is historical and contains the previous skill names. Keep it unchanged and do not publish it as part of this release. Package version `0.9.0-beta.1` identifies the release candidate; the package remains private to npm.
+For a future release:
 
-The GitHub repository is `soom-kang/sharpen-me`. After reviewing the final diff, validation results and [release notes](releases/v0.9.0-beta.1.md), obtain the agreed approval for commit, main push, tag and publication. Confirm Verify CI on the exact commit before creating the annotated `v0.9.0-beta.1` tag. Push only that tag, then inspect installation from its URL:
+1. Agree on a new version and review the diff, validation results, and release notes. Preserve the beta notice and unresolved [evaluation results](evaluation.md); compare the shipping skill bytes with the evaluated after snapshot.
+2. Obtain approval for commit, main push, tag, and publication. Confirm Verify CI on the exact commit before creating the agreed annotated tag.
+3. Push only that tag and verify installation from its URL in a disposable project. The existing release can be checked with:
 
-```bash
-npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1
-```
+   ```bash
+   npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1
+   ```
 
-Publish only after this check passes, using `--verify-tag --prerelease --latest=false`. Preserve failed evaluation gates in the public notes. A beta publication with disclosed failures does not mean `releaseReady: true`. If the branch changes or the tag already exists, inspect the new state before proceeding. If remote installation fails, leave the tag in place and hold publication; do not overwrite it.
+4. Publish after the tag installation check passes, using `--verify-tag --prerelease --latest=false`. Disclose failed evaluation gates; beta publication does not make `releaseReady` true.
+5. If the branch changes or the chosen tag exists, inspect the state before proceeding. If installation fails, keep the tag in place and hold publication. Do not overwrite the tag to recover.
 
-Existing installations require the [manual replacement steps](rename.md#replace-an-existing-project-installation). Global installation and user model settings are outside this workflow.
+For existing installations, follow the [replacement steps](rename.md#replace-an-existing-project-installation). Global installations and user model settings are outside this procedure.

@@ -1,44 +1,49 @@
 # Design
 
-sharpen-me distributes eight independent Skill directories for Claude Code and Codex. The caller owns scope, permissions, model settings, and response format. Selecting a Skill grants no additional permission.
+Choose a skill for the task, then set its scope and permissions in your request. Each of the eight skills installs on its own in Codex or Claude Code.
 
 ## Responsibilities and boundaries
 
-| Skill | Decision procedure | Completion |
+| Skill | Procedure | Completion |
 | --- | --- | --- |
-| `sharpen-clarify` | Resolve plausible misreadings using the request and repository evidence | Ask about an unresolved consequential choice; otherwise continue without a forced scope report |
-| `sharpen-review` | Choose relevant review perspectives and trace supported defects | Report findings, or a clean result; compare perspectives only when they change the conclusion |
-| `sharpen-challenge` | Test assumptions, counterarguments, evidence, and distinguishing observations | Keep independent blockers; separate observed behavior from inferred causes |
-| `sharpen-assess` | Separate exposure, reasoning difficulty, and verification | Recommend capability and effort without changing the user's choice |
-| `sharpen-refine` | Preserve behavior in code and meaning in prose within authorized edits | Report actual changes and checks; explicitly requested blocks and tables are editable |
-| `sharpen-cold-review` | Select comprehension or code review and establish genuine isolation | Report bounded findings or `not_run` when isolation is unavailable |
-| `sharpen-brief` | Bound new history by a baseline, but include all current blockers | Report relevant current state without invented questions or a fixed follow-up offer |
-| `sharpen-dedupe` | Separate semantic similarity from an appropriate action | Propose or execute authorized deduplication; use `keep` for intentional separation and `defer` for missing evidence |
+| `sharpen-clarify` | Resolve plausible readings from the request and repository | Ask about consequential unresolved choices; otherwise continue without a forced scope report |
+| `sharpen-review` | Trace supported defects using relevant review perspectives | Report findings or a clean result; compare perspectives only if they change the conclusion |
+| `sharpen-challenge` | Examine assumptions and distinguishing evidence | Retain independent blockers and separate observations from inferred causes |
+| `sharpen-assess` | Separate change exposure, reasoning difficulty, and verification | Recommend capability and effort without changing the user's settings |
+| `sharpen-refine` | Preserve code behavior and prose meaning within authorized edits | Report changes and checks |
+| `sharpen-cold-review` | Establish isolation and choose the evidence boundary | Report bounded findings or `not_run` |
+| `sharpen-brief` | Bound changed history by a baseline and include current blockers | Report relevant state without invented questions or a fixed follow-up offer |
+| `sharpen-dedupe` | Distinguish shared behavior from ownership and action | Propose or perform authorized changes; `keep` intentional differences and `defer` missing evidence |
+
+A review or challenge can find no defect. All eight skills allow automatic selection, but metadata alone does not prove that an agent selected or loaded one. Evaluation records explicit behavior and implicit selection evidence separately.
 
 ## Output and authorization
 
-Default output is concise prose appropriate to the task. Caller schemas take precedence; there is no universal five-field evaluation host in a Skill's contract. The original JSON evaluation cases still require `decision`, `findings`, `evidence`, `limitations`, and `changes`, with their existing types. Additional JSON fields remain allowed.
+You control which files may change, the model settings, and the response format. Selecting a skill grants no extra permission. The default response is concise prose; a format you request takes precedence.
 
-`sharpen-assess` retains `change_risk`, `execution_advice`, `verification`, and `reassessment_triggers` as report fields. `unknown` exposure calls for evidence, not an automatic capability increase. Concrete model mappings require a supplied or verified catalog. Skill instructions do not pin vendor model names.
+`sharpen-refine` can edit code blocks, tables, or authored text when your request authorizes those edits. Protected areas and unrelated changes stay intact. For `sharpen-dedupe`, proposing a shared owner does not authorize creating one: consolidation requires an implementation request.
 
-All eight Skills retain automatic selection. Metadata advertises when to use them; it does not establish that a provider selected or loaded one. A review or challenge may legitimately find no defect. The evaluation separately records explicit behavior and implicit selection evidence.
+`sharpen-assess` reports `change_risk`, `execution_advice`, `verification`, and `reassessment_triggers`. Unknown exposure calls for more evidence, not an automatic increase in model capability. A concrete model mapping needs a supplied or verified catalog; the skill does not pin vendor model names.
 
-In `sharpen-refine`, an explicit request can authorize changes to code blocks, tables, or authored content. Separately protected areas and unrelated user changes remain protected. In `sharpen-dedupe`, an audit may propose a new owner; creating it requires an authorized implementation step. A semantic label does not itself require consolidation.
+The original JSON evaluation cases require `decision`, `findings`, `evidence`, `limitations`, and `changes` with their existing types, and allow extra fields. This format applies to those cases, not every skill response.
 
 ## Fresh review modes
 
-An explicit mode wins. A code-change correctness review uses `code`; a document cold read uses `comprehension`. Ask only when mixed purposes would change the evidence boundary and the request does not decide.
+Use a separate context that excludes the author's verdict and persuasive rationale. Rereading the author conversation does not establish independence. An isolated host invocation is sufficient; no nested reviewer is required.
 
-Comprehension assesses the supplied artifact's own usability; neighboring documents must not fill its omissions. Code review can read declared contracts, relevant baselines, callers, and validation evidence within permitted paths. Both exclude the author's verdict and persuasive rationale. A genuinely isolated host invocation needs no nested reviewer. Rereading the author conversation never establishes independence.
+| Mode | Question | Permitted evidence |
+| --- | --- | --- |
+| `comprehension` | Does the document stand on its own? | The supplied artifact; neighboring documents must not fill its gaps |
+| `code` | Is the code change correct? | Declared contracts, relevant baselines, callers, and validation within permitted paths |
+
+An explicit mode wins. Otherwise, choose `code` for code correctness and `comprehension` for a document cold read. Ask only when mixed purposes need different evidence and the request leaves that choice open. Report `not_run` if context isolation is unavailable.
 
 ## Distribution and maintenance
 
-Each `skills/<name>/` directory contains `SKILL.md`, Codex metadata, and a complete MIT license. The rename changes names and paths; license notices and automatic selection policies are preserved. The [name mapping](rename.md#names) documents the transition. Common procedures do not assume provider-specific agent tools. There is no added runtime service or production dependency.
+Each `skills/<name>/` contains `SKILL.md`, Codex metadata, and the complete MIT license. The procedures do not assume provider-specific agent tools or require a runtime service or production dependency. The [name mapping](rename.md#names) preserves the transition history; license notices and automatic selection policies remain intact.
 
-Development, CI, and fixture checks use Node 24.20.0; the supported installation minimum is 24.20.0. [Maintenance](maintenance.md) describes verification and publication boundaries.
+Use Node.js 24.20.0 for development, CI, and fixture checks. The installation minimum is 24.20.0. See [Maintenance](maintenance.md) for checks and publication procedures.
 
 ## Evaluation
 
-The schema v3 matrix compares the complete installation units at `87b2e06`, normalized to the current names, with frozen current units: 48 cases, two providers, two versions, and three repetitions, totaling 576 calls for both providers. Contract revision 4 selects both Codex and Claude Code, for 576 planned calls. Primary-response model identity is checked separately from aggregate usage models; selected-provider success does not certify both providers. Behavior, natural output, and automatic selection are reported separately. The 16 original behavior cases retain their meanings and expected facts.
-
-Host provider CLIs execute outside Docker. The host's behavior checks of model-edited files execute in an isolated Node 24.20.0 container. This container is not a claim that the provider's entire tool session is containerized. [Evaluation](evaluation.md) specifies evidence, accounting, and limitations. The current contract revision is 4. Older contracts remain historical records and cannot be resumed or mixed into the new comparison.
+See [Evaluation](evaluation.md) for the current counts, contract revision, and acceptance criteria. Provider CLIs run on the host. Host behavior checks of edited files run in a separate Docker container; that boundary does not cover the provider's whole session.

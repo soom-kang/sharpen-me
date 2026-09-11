@@ -1,9 +1,8 @@
 # 8개 스킬 개선 결과
 
-> 이름 변경 전 파일을 대상으로 한 과거 기록입니다. 표와 설명은 현재 `sharpen-*` 이름으로 읽을 수 있게 정리했습니다. 당시 이름은 [이름 대응표](rename.md#names)를 참고하세요. 수치, 날짜, run ID와 hash는 원본 그대로이며 새 이름의 평가 결과가 아닙니다. 현재 상태는 [평가 안내](evaluation.md)를 확인하세요.
+> 이름 변경 전 파일의 평가 기록입니다. 표와 설명에는 `sharpen-*` 이름을 사용합니다. 당시 이름은 [이름 대응표](rename.md#names), 현재 상태는 [평가 안내](evaluation.md)를 참고합니다. 수치, 날짜, run ID와 hash는 원본 그대로입니다. 새 이름의 평가 결과로 해석하지 않습니다.
 
-
-2026-09-09 작업. 개선 전 기준은 `09bb9761294f0189a59e119e2b0db1c3db502370`입니다. 스킬 수정과 평가 도구 구현을 마쳤으며, 모델 평가 결과는 아래 실행 상태와 구분합니다.
+2026-09-09에 스킬 수정과 평가 도구 구현을 마쳤습니다. 개선 전 기준은 `09bb9761294f0189a59e119e2b0db1c3db502370`입니다. 실제 모델 평가 결과는 [실제 평가 상태](#실제-평가-상태)에 따로 기록했습니다.
 
 ## 스킬별 변경
 
@@ -18,7 +17,7 @@
 | `sharpen-brief` | baseline 이전의 현재 blocker가 변경 범위 밖으로 빠질 가능성 | baseline은 새 이력에만 적용. 현재 blocker·위험·미해결 결정은 발생 시점과 무관하게 포함 | 과거부터 남은 recovery blocker를 누락하지 않는지 |
 | `sharpen-dedupe` | semantic label과 action 혼재. audit 중 새 owner 생성 가능 | `keep`·`defer` 추가. label과 action 분리. audit에서는 owner 제안만 수행 | 동일 코드의 의도적 분리와 동적 근거 부족을 각각 `keep`·`defer`로 처리하는지 |
 
-모든 스킬에서 caller 형식 우선 규칙을 유지했습니다. 일반 호출은 작업에 맞는 간결한 보고를 기본으로 합니다. 평가 host가 항상 존재한다거나 추가 JSON 필드를 삭제·거부한다는 설명을 제거했습니다. Codex 기본 prompt도 수정한 절차에 맞췄습니다. 이름·설치 경로·MIT license·자동 선택 정책은 유지했고 스킬 본문에 모델명을 고정하지 않았습니다.
+모든 스킬에서 사용자가 지정한 출력 형식을 우선합니다. 일반 호출은 작업에 맞춰 간결하게 보고합니다. 평가 host가 항상 존재한다거나 추가 JSON 필드를 삭제·거부한다는 설명을 제거했습니다. Codex 기본 prompt도 수정한 절차에 맞췄습니다. 이름, 설치 경로, MIT license, 자동 선택 정책은 유지했고 스킬 본문에 모델명을 고정하지 않았습니다.
 
 ## 평가 도구와 Node
 
@@ -43,13 +42,16 @@
 | `git diff --check` | 통과 |
 | 별도 지침 검토 | 구체적인 충돌 미발견. 대표 fixture의 계약·오류 순서·보호 영역을 검토 |
 
-기본 Python 환경의 PyYAML 부재로 `quick_validate.py` 첫 실행은 실패했습니다. 임시 가상환경에 PyYAML 6.0.3을 설치한 후 8개 검사를 모두 실행했습니다. 저장소에 새 production dependency를 추가하지 않았습니다.
+기본 Python 환경에 PyYAML이 없어 `quick_validate.py` 첫 실행은 실패했습니다. 임시 가상환경에 PyYAML 6.0.3을 설치한 뒤 8개 검사를 마쳤습니다. 저장소의 production dependency는 추가하지 않았습니다.
 
 별도 지침 검토와 로컬 검사는 실제 provider 행동 검증을 대신하지 않습니다. 원격 CI와 공개 tag 설치는 이번에 실행하지 않았습니다.
 
 ## 실제 평가 상태
 
-평가 `2026-09-09T04-03-00-483Z-v3`는 **576회 중 2회 호출 후 중단**했습니다. 검토 결과는 **PASS 1, FAIL 0, UNCLEAR 0, NOT_RUN 575**이며 `releaseReady: false`입니다. NOT_RUN 575개는 비교에서 제외된 Claude 호출 1개와 실제 호출하지 않은 574개로 구성됩니다. 호출 수는 provider CLI session 수이며 내부 API request 수가 아닙니다.
+평가 `2026-09-09T04-03-00-483Z-v3`는 **576회 중 2회 호출 후 중단**했습니다. 결과는 **PASS 1, FAIL 0, UNCLEAR 0, NOT_RUN 575**, `releaseReady: false`입니다. NOT_RUN 575개는 비교에서 제외한 Claude 호출 1개와 미시도 574개입니다. 호출 수는 provider CLI 세션 수이며 내부 API 요청 수가 아닙니다.
+
+<details>
+<summary>스킬별 계획과 미실행 항목</summary>
 
 | 스킬 | 행동 전: PASS / NOT_RUN | 행동 후: PASS / NOT_RUN | 기본 출력 전·후 | 자동 선택 전·후 |
 | --- | --- | --- | --- | --- |
@@ -62,7 +64,9 @@
 | `sharpen-brief` | 0 / 18 | 0 / 18 | 각각 6 NOT_RUN | 각각 12 NOT_RUN |
 | `sharpen-dedupe` | 0 / 18 | 0 / 18 | 각각 6 NOT_RUN | 각각 12 NOT_RUN |
 
-행동 열은 기존 2개와 regression 1개를 두 provider에서 3회씩 실행할 계획인 18개 슬롯을 나타냅니다. 통과율 추정치가 아닙니다. 전후 효과·자동 선택 정확성·3회 반복 변동을 계산할 근거가 없습니다.
+행동 열의 18개 슬롯은 기존 2개와 regression 1개를 두 provider에서 3회씩 실행할 계획입니다. 통과율을 추정한 값이 아닙니다. 전후 효과, 자동 선택 정확성, 3회 반복 변동을 계산할 근거가 없습니다.
+
+</details>
 
 | 실제 호출 | 시간 | 보고된 token usage | 판정 |
 | --- | ---: | --- | --- |
@@ -75,7 +79,7 @@ Claude의 사용 모델 집합에 `claude-opus-5`와 `claude-haiku-4-5-20251001`
 
 Codex event에는 응답 모델명이 없었습니다. 명령의 `gpt-6-astra / medium` 지정은 확인했지만 provider 반환 모델 검증과 구분하여 `explicit_cli_argument_only`로 기록했습니다.
 
-완료된 응답은 version label을 가린 자료로 검토했습니다. 내용과 설치 경로에서 provider나 버전을 추정할 가능성까지 제거한 완전한 blind test는 아닙니다. 추가 유료 grader는 호출하지 않았습니다.
+완료된 응답은 버전 표시를 가리고 검토했습니다. 내용과 설치 경로로 provider나 버전을 추정할 수 있어 완전한 맹검은 아닙니다. 추가 유료 grader는 호출하지 않았습니다.
 
 ## 남은 개선점과 합의 사항
 
