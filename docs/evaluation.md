@@ -4,6 +4,8 @@ Check the results below before relying on a skill for consequential work. For co
 
 **Current sharpen-me status: stopped; evaluation gate not met.** Run `2026-09-10T03-04-01-035Z-v3` attempted 69 of 576 planned calls before a Claude weekly-limit response stopped dispatch. Reviewed totals are **45 PASS, 14 FAIL, 9 UNCLEAR, 508 NOT_RUN**. The latter includes one failed provider attempt and 507 never-called slots. Release-version totals are 22 PASS, 6 FAIL, 6 UNCLEAR and 254 NOT_RUN. `evaluationPassed` and `releaseReady` remain `false`.
 
+The separate [v0.9.0-beta.2 focused evaluation](evaluation-v0.9.0-beta.2.ko.md) resolves 48 selected comparison slots across several authorized runs: all 24 candidate slots PASS, while the baseline has 21 PASS and 3 FAIL. Its 68 provider calls are not added to the v3 archive or its 576-call gate. This one-observation-per-slot result does not establish automatic selection, all repetitions, or full release readiness.
+
 See the [v0.9.0-beta.1 Korean evaluation report](evaluation-v0.9.0-beta.1.ko.md) for provider/skill counts, failure evidence and unrun coverage. Automatic selection, default output and repetitions 2–3 did not run. The runner retained `MODEL_MISMATCH` for the quota response because it reported model ID `<synthetic>`; this is not evidence of task execution on a fallback model. No retry or resume was performed. Historical results below concern earlier files; [the name mapping](rename.md#names) identifies their original names.
 
 ## Historical Codex evaluation
@@ -42,8 +44,8 @@ No automatic-selection or default-output case ran in that historical archive. It
 | Cases | 16 original behavior + 8 regression + 8 natural output + 16 implicit selection |
 | Repetitions | Three per case/provider/version |
 | Calls | Current phase: 48 × 2 × 2 × 3 = 576 planned calls; 290 historical attempts stay separate |
-| Claude | `claude-opus-5`, `medium` |
-| Codex | `gpt-6-astra`, `medium` |
+| Claude | `claude-opus-5-5`, `low` |
+| Codex | `gpt-6-sol`, `medium` |
 | Provider timeout | 180 seconds; no automatic retry or fallback |
 | Concurrency | One invocation per provider, at most two in flight |
 | Behavior checks | Node 24.20.0 Docker container, 30 seconds per check |

@@ -1,6 +1,6 @@
 # Evaluation cases
 
-The v3 matrix defines 48 synthetic cases across eight skills. Current contract revision 4 configuration selects Codex (`gpt-6-sol / medium`) and Claude Code (`claude-opus-5-5 / low`). Each runs the matrix baseline and current instructions three times: 576 new calls. The focused comparison of this skill edit uses a separate pre-edit baseline and at most 48 calls; it does not enter the v3 archive. Keep the 290 historical attempts separate. These cases define inputs and grading criteria; see [Evaluation](../docs/evaluation.md) for observed results.
+The v3 matrix defines 48 synthetic cases across eight skills. Current contract revision 4 configuration selects Codex (`gpt-6-sol / medium`) and Claude Code (`claude-opus-5-5 / low`). Each runs the matrix baseline and current instructions three times: 576 new calls. The separate [v0.9.0-beta.2 focused comparison](../docs/evaluation-v0.9.0-beta.2.ko.md) resolved 48 selected slots through 68 calls across several authorized runs; it does not enter the v3 archive. Keep the 290 historical attempts separate. These cases define inputs and grading criteria; see [Evaluation](../docs/evaluation.md) for observed results.
 
 | Category | Cases | Purpose |
 | --- | ---: | --- |

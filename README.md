@@ -6,9 +6,9 @@ Eight skills to clarify requests, review work, assess risk, and refine code and 
 
 [![Verify](https://github.com/soom-kang/sharpen-me/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/soom-kang/sharpen-me/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Public beta: v0.9.0-beta.1](https://img.shields.io/badge/Public_beta-v0.9.0--beta.1-orange)](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1)
+[![Public beta: v0.9.0-beta.2](https://img.shields.io/badge/Public_beta-v0.9.0--beta.2-orange)](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.2)
 
-**Public beta `v0.9.0-beta.1` has not passed behavior evaluation.** Read the [evaluation results and limits](docs/evaluation-v0.9.0-beta.1.ko.md) for remaining failures, unclear results, and unrun cases before use.
+**Public beta `v0.9.0-beta.2` passed 24/24 candidate slots in a focused evaluation.** The full 576-call gate remains unmet. Read the [focused results and limits](docs/evaluation-v0.9.0-beta.2.ko.md) before use.
 
 [한국어](docs/README.ko.md) · [Releases](https://github.com/soom-kang/sharpen-me/releases) · [Design](docs/design.md) · [Evaluation](docs/evaluation.md) · [Maintenance](docs/maintenance.md)
 
@@ -45,10 +45,10 @@ npx skills add soom-kang/sharpen-me --skill sharpen-review --agent codex claude-
 Pin the published Pre-release instead of following `main`:
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1 --skill '*' --agent codex claude-code
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.2 --skill '*' --agent codex claude-code
 ```
 
-Read the [published release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1) for validation and known limits. Each skill carries its own instructions, metadata, and license for standalone installation.
+Read the [release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.2) for validation and known limits. Each skill carries its own instructions, metadata, and license for standalone installation.
 
 </details>
 

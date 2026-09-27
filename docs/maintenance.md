@@ -43,7 +43,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
-1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The focused comparison of this edit uses pre-edit commit `548fe1e4706bef355e5ed1f50c12230fcefbf2c7` and a separate 48-call cap; it is not a v3 release gate.
+1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The [v0.9.0-beta.2 focused comparison](evaluation-v0.9.0-beta.2.ko.md) used pre-edit commit `548fe1e4706bef355e5ed1f50c12230fcefbf2c7` and resolved 48 selected slots through 68 separately authorized calls. It is not the v3 release gate.
 2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
 3. Start the agreed evaluation:
 
@@ -103,16 +103,16 @@ The summary validates source and observation hashes, identities, required checks
 
 ## Release and recovery
 
-[`v0.9.0-beta.1`](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1) is published as a Pre-release. The repository is `soom-kang/sharpen-me`; the package remains private to npm. The local historical `v0.8.10-beta.1` tag contains the old names and stays unchanged.
+[`v0.9.0-beta.1`](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1) is published as a Pre-release. The `v0.9.0-beta.2` focused result and release notes are [documented separately](releases/v0.9.0-beta.2.md). The repository is `soom-kang/sharpen-me`; the package remains private to npm. The local historical `v0.8.10-beta.1` tag contains the old names and stays unchanged.
 
 For a future release:
 
 1. Agree on a new version and review the diff, validation results, and release notes. Preserve the beta notice and unresolved [evaluation results](evaluation.md); compare the shipping skill bytes with the evaluated after snapshot.
 2. Obtain approval for commit, main push, tag, and publication. Confirm Verify CI on the exact commit before creating the agreed annotated tag.
-3. Push only that tag and verify installation from its URL in a disposable project. The existing release can be checked with:
+3. Push only that tag and verify installation from its URL in a disposable project. After `v0.9.0-beta.2` is tagged, check it with:
 
    ```bash
-   npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1
+   npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.2
    ```
 
 4. Publish after the tag installation check passes, using `--verify-tag --prerelease --latest=false`. Disclose failed evaluation gates; beta publication does not make `releaseReady` true.

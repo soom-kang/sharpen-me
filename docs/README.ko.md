@@ -6,9 +6,9 @@ Codex와 Claude Code에서 요청 정리, 위험 판단, 코드와 문서 검토
 
 [![Verify](https://github.com/soom-kang/sharpen-me/actions/workflows/verify.yml/badge.svg?branch=main)](https://github.com/soom-kang/sharpen-me/actions/workflows/verify.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](../LICENSE)
-[![Public beta: v0.9.0-beta.1](https://img.shields.io/badge/Public_beta-v0.9.0--beta.1-orange)](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1)
+[![Public beta: v0.9.0-beta.2](https://img.shields.io/badge/Public_beta-v0.9.0--beta.2-orange)](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.2)
 
-**공개 베타 `v0.9.0-beta.1`은 행동 평가를 통과하지 못했습니다.** 사용 전에 [평가 결과와 한계](evaluation-v0.9.0-beta.1.ko.md)에서 실패, 미확인, 미실행 항목을 확인합니다.
+**공개 베타 `v0.9.0-beta.2`는 선별 평가의 후보 24건을 모두 통과했습니다.** 전체 576회 평가 게이트는 아직 미통과입니다. 사용 전에 [선별 평가 결과와 한계](evaluation-v0.9.0-beta.2.ko.md)를 확인합니다.
 
 [English](../README.md) · [Releases](https://github.com/soom-kang/sharpen-me/releases) · [설계](design.md) · [평가](evaluation.md) · [유지보수](maintenance.md)
 
@@ -45,10 +45,10 @@ npx skills add soom-kang/sharpen-me --skill sharpen-review --agent codex claude-
 `main` 대신 게시된 Pre-release로 버전 고정:
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.1 --skill '*' --agent codex claude-code
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.2 --skill '*' --agent codex claude-code
 ```
 
-검증 결과와 알려진 한계는 [게시된 릴리스 노트](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1)에 있습니다. 스킬마다 지침, 메타데이터, 라이선스를 포함하므로 하나만 설치해도 됩니다.
+검증 결과와 알려진 한계는 [릴리스 노트](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.2)에 있습니다. 스킬마다 지침, 메타데이터, 라이선스를 포함하므로 하나만 설치해도 됩니다.
 
 </details>
 
