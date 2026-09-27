@@ -43,7 +43,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
-1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-astra / medium` and Claude Code `claude-opus-5 / medium`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available.
+1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The focused comparison of this edit uses pre-edit commit `548fe1e4706bef355e5ed1f50c12230fcefbf2c7` and a separate 48-call cap; it is not a v3 release gate.
 2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
 3. Start the agreed evaluation:
 
@@ -67,6 +67,8 @@ Resume selects **never-called slots**. Attempted or interrupted calls retain the
 The current policy is `contractRevision: 4` with `modelPolicy: primary_response_only`. Structured primary assistant model fields establish returned identity; aggregate model usage remains separate. Extra models in usage do not establish fallback. Without a returned identity, record `explicit_cli_argument_only`; prose is not model evidence.
 
 Extract the baseline from `87b2e064ad0d5ba7b38a1f7c194929fda980cf0a` without changing the checkout. Preserve original bytes in `frozen/original/skills/` and normalize names in `frozen/before/skills/`. Original and normalized hashes, the name mapping, and rules version bind to the input hash. Both versions install the new names; see [comparison limits](evaluation.md#current-matrix-and-method).
+
+Changing the current model configuration does not change model settings or outcomes in dated evaluation records. Archives frozen with earlier settings are not resumable under the new configuration.
 
 Each provider runs one call at a time, at most two in flight overall. Version order is balanced, and the runner records dispatch order before spawning.
 

@@ -62,11 +62,11 @@ test('semantic similarity and a path mention cannot prove source loading; mismat
   assert.equal(observeV3('codex',{...quota,timedOut:true},c,{},'gpt-6-astra').reason,'TIMEOUT');
 });
 
-test('provider commands pin equal medium effort without fallback or nested agents',()=>{
+test('provider commands pin configured effort without fallback or nested agents',()=>{
   for(const provider of ['codex','claude']) {
     const argv=providerCommand(provider,normal,'/fixture',config);
     assert.ok(argv.includes(config.providers[provider].model));
-    assert.ok(argv.some(arg=>arg.includes('medium')));assert.ok(!argv.includes('--fallback-model'));
+    assert.ok(argv.some(arg=>arg.includes(config.providers[provider].effort)));assert.ok(!argv.includes('--fallback-model'));
   }
 });
 

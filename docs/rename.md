@@ -1,6 +1,6 @@
 # Move to sharpen-me
 
-Save local skill edits before replacing an `rm-*` installation. The project was named refactor-me through `v0.8.10-beta.1`; the new names have no compatibility aliases.
+Save local skill edits before replacing an `rm-*` installation. The `v0.8.10-beta.1` release used the old names; the new names have no compatibility aliases.
 
 ## Names
 
