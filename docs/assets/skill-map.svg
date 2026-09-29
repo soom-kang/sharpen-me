@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 1020" role="img" aria-labelledby="skill-map-en-title skill-map-en-desc">
+<title id="skill-map-en-title">Choose a skill for the task</title><desc id="skill-map-en-desc">Independent choices, not an execution sequence.</desc>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 z" fill="#b95522"/></marker></defs>
+<rect width="640" height="1020" fill="#fffdf7"/>
+<text x="40" y="58" fill="#b95522" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="18" font-weight="700">sharpen-me</text>
+<text x="40" y="103" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="30" font-weight="700">Choose a skill for the task</text>
+<text x="40" y="140" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="20" font-weight="400">Start with your task. There is no required order.</text>
+<text x="40" y="190" fill="#b95522" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="24" font-weight="700">Planning and context</text>
+<rect x="40" y="210" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="238" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-clarify</text>
+<text x="58" y="267" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Request meaning and scope</text>
+<rect x="40" y="296" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="324" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-challenge</text>
+<text x="58" y="353" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Assumptions in a plan</text>
+<rect x="40" y="382" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="410" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-assess</text>
+<text x="58" y="439" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Risk and verification</text>
+<rect x="40" y="468" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="496" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-brief</text>
+<text x="58" y="525" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Restart or handoff</text>
+<text x="40" y="592" fill="#b95522" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="24" font-weight="700">Reviewing and editing</text>
+<rect x="40" y="612" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="640" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-review</text>
+<text x="58" y="669" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Defects in changes</text>
+<rect x="40" y="698" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="726" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-cold-review</text>
+<text x="58" y="755" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Review in a separate context</text>
+<rect x="40" y="784" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="812" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-refine</text>
+<text x="58" y="841" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Scoped code or prose edits</text>
+<rect x="40" y="870" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
+<text x="58" y="898" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-dedupe</text>
+<text x="58" y="927" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Shared behavior and ownership</text>
+<text x="40" y="986" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="20" font-weight="400">State the target, edit permission, and output.</text>
+</svg>

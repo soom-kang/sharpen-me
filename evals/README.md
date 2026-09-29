@@ -1,6 +1,6 @@
 # Evaluation cases
 
-The v3 matrix defines 48 synthetic cases across eight skills. Current contract revision 4 configuration selects Codex (`gpt-6-sol / medium`) and Claude Code (`claude-opus-5-5 / low`). Each runs the matrix baseline and current instructions three times: 576 new calls. The separate [v0.9.0-beta.2 focused comparison](../docs/evaluation-v0.9.0-beta.2.ko.md) resolved 48 selected slots through 68 calls across several authorized runs; it does not enter the v3 archive. Keep the 290 historical attempts separate. These cases define inputs and grading criteria; see [Evaluation](../docs/evaluation.md) for observed results.
+The v3 matrix defines 48 synthetic cases across eight skills. Two providers, two instruction versions, and three repetitions produce 576 planned calls. See [Evaluation](../docs/evaluation.md) for current configuration and measured results, and [Maintenance](../docs/maintenance.md) for execution commands. Expected facts are evaluator-only.
 
 | Category | Cases | Purpose |
 | --- | ---: | --- |
@@ -31,23 +31,9 @@ Compare fixture bytes before and after the call. Any write outside `mutablePaths
 
 ## Fixture freeze
 
-The following hashes identify the historical fixtures frozen before the skill edits on 2026-09-09. The rename preserves tasks, input files, permitted edits and expected facts, but changes skill identities and name-derived case IDs. Do not change expected facts in response to model outcomes.
+Freeze inputs before dispatch. Do not change expected facts in response to model outcomes. A justified fixture correction needs a documented diff and a separately agreed evaluation.
 
-<details>
-<summary>Historical fixture hashes</summary>
-
-| Input | SHA-256 |
-| --- | --- |
-| Original 16 normalized cases | `fd23c8cbe6ed4c3ad5223dcb880c249979bdf94605aaadada23f03f7c16b1d47` |
-| Complete 48 normalized cases | `c6d61b693c93ffdfca13937f79fefa2a402866bcbd3d86e602a17449b593d6dd` |
-| Original case module after exports were separated | `e2be9d5f10a6c4dfb84620b09bc96fda416a49e63315f45c8648bb20ee86c7e3` |
-| Additional case module | `a42d6fbdb01ea9ca438783d5047249981751e104ba1238ce9859efcaf0453ba6` |
-
-</details>
-
-A justified future fixture correction needs a documented diff and separately agreed evaluation. Historical v2 archives remain unchanged and cannot enter v3 results. [Evaluation](../docs/evaluation.md) describes current observations and remaining limits.
-
-The unchanged renamed fixtures now run under observation `contractRevision: 4`. New normalized hashes are recorded below; they are not replacements for the historical evidence above. Before and after both use the new skill names. Existing v3 contract 2 or 3 archives cannot be resumed or summarized with this contract.
+The current observation contract is revision 4. Both versions use the same skill names. Older archives remain unchanged and cannot be resumed or summarized under this contract. These hashes identify the current approved fixtures:
 
 | Current input | SHA-256 |
 | --- | --- |

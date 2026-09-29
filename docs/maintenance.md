@@ -17,7 +17,13 @@ Run the local checks before changing a skill. Address a concrete failure or need
 
 3. Inspect failures before proceeding. `verify` checks packaging, license copies, metadata, links, syntax, regression tests, and the declared 48-case matrix. The installation suite covers whole and individual installs, copy and symlink modes, reinstall, removal, and coexistence.
 
-Dry run lists the plan without provider calls, downloads, Docker operations, or archive writes. Local checks do not measure model behavior. Tests do not skip because Node is below 26. You can also run the `skill-creator` validator if it is available locally.
+Dry run lists the plan without provider calls, downloads, Docker operations, or archive writes. Local checks do not measure model behavior. You can also run the `skill-creator` validator if it is available locally.
+
+## Documentation and diagrams
+
+Keep README and usage guides paired in English and Korean. Design, evaluation, and maintenance are English references. Update the current evaluation page when consolidating results; preserve source conditions and unmet gates.
+
+The four `docs/assets/skill-map*.html` and `global-install*.html` files are editable diagram sources. Each SVG image contains the source's inline SVG, with an XML declaration. Keep both languages, accessible title/description IDs, and the exported SVG in sync. Check text bounds and rendering at 640 px and 375 px widths. Use local font fallbacks so images do not require a font service.
 
 ## Docker checks
 
@@ -43,7 +49,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
-1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The [v0.9.0-beta.2 focused comparison](evaluation-v0.9.0-beta.2.ko.md) used pre-edit commit `548fe1e4706bef355e5ed1f50c12230fcefbf2c7` and resolved 48 selected slots through 68 separately authorized calls. It is not the v3 release gate.
+1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The [focused comparison](evaluation.md#focused-evaluation) is separate from the full gate.
 2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
 3. Start the agreed evaluation:
 
@@ -103,19 +109,12 @@ The summary validates source and observation hashes, identities, required checks
 
 ## Release and recovery
 
-[`v0.9.0-beta.1`](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.1) is published as a Pre-release. The `v0.9.0-beta.2` focused result and release notes are [documented separately](releases/v0.9.0-beta.2.md). The repository is `soom-kang/sharpen-me`; the package remains private to npm. The local historical `v0.8.10-beta.1` tag contains the old names and stays unchanged.
+The package is private to npm. Use [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases) for published notes. Publication does not change an unmet evaluation gate.
 
-For a future release:
+1. Agree on the version, diff, checks, and release notes. Compare the shipping skill bytes with the evaluated snapshot and disclose the [evaluation limits](evaluation.md).
+2. Obtain approval for commit, main push, tag, and publication. Verify CI must pass on the exact release commit.
+3. Push the agreed annotated tag. Test its URL in a disposable project with `npm run test:install -- --source` followed by that tag's GitHub tree URL.
+4. Publish only after the tag install passes. For a Pre-release, use `--verify-tag --prerelease --latest=false`.
+5. If the tag exists or installation fails, inspect the state and hold publication. Do not overwrite a tag to recover.
 
-1. Agree on a new version and review the diff, validation results, and release notes. Preserve the beta notice and unresolved [evaluation results](evaluation.md); compare the shipping skill bytes with the evaluated after snapshot.
-2. Obtain approval for commit, main push, tag, and publication. Confirm Verify CI on the exact commit before creating the agreed annotated tag.
-3. Push only that tag and verify installation from its URL in a disposable project. After `v0.9.0-beta.2` is tagged, check it with:
-
-   ```bash
-   npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.2
-   ```
-
-4. Publish after the tag installation check passes, using `--verify-tag --prerelease --latest=false`. Disclose failed evaluation gates; beta publication does not make `releaseReady` true.
-5. If the branch changes or the chosen tag exists, inspect the state before proceeding. If installation fails, keep the tag in place and hold publication. Do not overwrite the tag to recover.
-
-For existing installations, follow the [replacement steps](rename.md#replace-an-existing-project-installation). Global installations and user model settings are outside this procedure.
+Use [Usage](usage.md#4-update-or-remove) for global installation updates and removal.

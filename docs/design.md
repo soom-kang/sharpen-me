@@ -1,6 +1,6 @@
 # Design
 
-Choose a skill for the task, then set its scope and permissions in your request. Each of the eight skills installs on its own in Codex or Claude Code.
+Each skill defines a bounded procedure. Choose one for the task and set its edit permissions in your request. See [Usage](usage.md) for installation and examples.
 
 ## Responsibilities and boundaries
 
@@ -40,7 +40,7 @@ An explicit mode wins. Otherwise, choose `code` for code correctness and `compre
 
 ## Distribution and maintenance
 
-Each `skills/<name>/` contains `SKILL.md`, Codex metadata, and the complete MIT license. The procedures do not assume provider-specific agent tools or require a runtime service or production dependency. The [name mapping](rename.md#names) preserves the transition history; license notices and automatic selection policies remain intact.
+Each `skills/<name>/` contains `SKILL.md`, Codex metadata, and the complete MIT license. The procedures do not assume provider-specific agent tools or require a runtime service or production dependency. License notices and automatic selection policies remain intact.
 
 Use Node.js 24.20.0 for development, CI, and fixture checks. The installation minimum is 24.20.0. See [Maintenance](maintenance.md) for checks and publication procedures.
 

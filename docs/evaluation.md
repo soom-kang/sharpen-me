@@ -1,39 +1,47 @@
-# Evaluation
+# Evaluation results and limits
 
-Check the results below before relying on a skill for consequential work. For commands and review steps, see [Maintenance](maintenance.md#live-evaluation-and-resume).
+**The focused candidate passed; the full evaluation gate remains unmet.** These are separate results. Installation and local checks do not measure model behavior.
 
-**Current sharpen-me status: stopped; evaluation gate not met.** Run `2026-09-10T03-04-01-035Z-v3` attempted 69 of 576 planned calls before a Claude weekly-limit response stopped dispatch. Reviewed totals are **45 PASS, 14 FAIL, 9 UNCLEAR, 508 NOT_RUN**. The latter includes one failed provider attempt and 507 never-called slots. Release-version totals are 22 PASS, 6 FAIL, 6 UNCLEAR and 254 NOT_RUN. `evaluationPassed` and `releaseReady` remain `false`.
+## Focused evaluation
 
-The separate [v0.9.0-beta.2 focused evaluation](evaluation-v0.9.0-beta.2.ko.md) resolves 48 selected comparison slots across several authorized runs: all 24 candidate slots PASS, while the baseline has 21 PASS and 3 FAIL. Its 68 provider calls are not added to the v3 archive or its 576-call gate. This one-observation-per-slot result does not establish automatic selection, all repetitions, or full release readiness.
+The v0.9.0-beta.2 comparison ran on 2026-09-27–28. It covered 12 cases across six skills, before/after instructions, and two providers: 48 comparison slots.
 
-See the [v0.9.0-beta.1 Korean evaluation report](evaluation-v0.9.0-beta.1.ko.md) for provider/skill counts, failure evidence and unrun coverage. Automatic selection, default output and repetitions 2–3 did not run. The runner retained `MODEL_MISMATCH` for the quota response because it reported model ID `<synthetic>`; this is not evidence of task execution on a fallback model. No retry or resume was performed. Historical results below concern earlier files; [the name mapping](rename.md#names) identifies their original names.
+| Provider | Version | PASS | FAIL | UNCLEAR | NOT_RUN |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Codex | before | 11 | 1 | 0 | 0 |
+| Codex | candidate | 12 | 0 | 0 | 0 |
+| Claude Code | before | 10 | 2 | 0 | 0 |
+| Claude Code | candidate | 12 | 0 | 0 | 0 |
+| Total | both | 45 | 3 | 0 | 0 |
 
-## Historical Codex evaluation
+All **24 candidate slots PASS**. This combines each slot's last valid result across separately authorized runs; it is not a fresh 48-call pass. Calls were 41 initially, then 12, 4, 4, and 7: **68 provider calls**. No automatic retry or model replacement ran. An earlier interrupted three-call run and the full-matrix archives remain separate.
 
-**Historical status: Codex evaluation complete, acceptance gate not met.** That 288-call run has 198 PASS, 35 FAIL, 55 UNCLEAR, and 0 NOT_RUN. Improved-version results are 111 PASS, 12 FAIL, and 21 UNCLEAR out of 144. Claude remains deferred and overall release readiness is false. See the [Korean Codex evaluation report](codex-evaluation.ko.md) for per-Skill comparisons, selection regressions, evidence limitations, and remaining work.
+| Evidence | Frozen condition |
+| --- | --- |
+| Baseline | Installation units at `548fe1e4706bef355e5ed1f50c12230fcefbf2c7` |
+| Candidate | `53101421bc8440bacfaa2827a84b23943dceaeb9` plus the evaluated cold-review edit; all 24 shipping skill files matched the final snapshot at release preparation |
+| Codex | `gpt-6-sol / medium`, CLI `0.157.1`; returned identity unavailable, recorded from explicit CLI arguments only |
+| Claude Code | `claude-opus-5-5 / low`, CLI `2.1.283`; model identity recorded from the completed response |
+| Checks | Node.js `24.20.0`, behavior checks in a digest-frozen `node:24.20.0-bookworm-slim` container |
 
-Run `2026-09-09T05-50-58-256Z-v3` used primary-response-only model verification and **288 new Codex invocations**, with no retry, fallback, or extra paid grader. All returned model identities were unavailable and recorded as `explicit_cli_argument_only`. Including the historical two calls, cumulative attempts are 290. The stopped-run result below is preserved; it was not regraded or inherited into the new phase.
+The six skills were clarify, challenge, assess, cold-review, brief, and refine. Review and dedupe were not evaluated in this comparison. Local `eval-results/focused-beta2-*` archives hold frozen inputs, responses, edits, timings, usage, and call records; raw archives are not release attachments.
 
-## Historical stopped run
+Evidence collection initially failed on macOS temporary-path resolution. Later timeouts and authentication failures were retained, then reevaluated in separately approved runs. Final document-edit cases changed only permitted files and passed their Docker checks.
 
-<details>
-<summary>Stopped-run evidence and model identity limits</summary>
+One final observation per slot does not establish a general success rate, provider superiority, automatic selection, default output, or repetitions 2–3. Reused and new results have narrower coverage than a fresh run against one source state. Default-branch installation may contain changes beyond the evaluated release.
 
-Run `2026-09-09T04-03-00-483Z-v3` used Node 24.20.0, Codex CLI 0.153.4, and Claude Code 2.1.236. The source, fixture, runner, config, and environment hashes remain archived. No automatic retry or model fallback was performed. After the run, changed-file collection was hardened against parent symlinks leaving the fixture and a regression test was added. Skill and fixture bytes did not change; the current runner hash differs, so this archive cannot be resumed by the current checkout. No additional inference was dispatched.
+## Full evaluation gate
 
-| Invocation | Evidence | Status |
-| --- | --- | --- |
-| Codex / before / `scope-repository-contract` / repeat 1 | Complete source read; valid caller JSON; required facts supported; no fixture edits; 56.344 seconds | PASS after evidence review |
-| Claude / after / same case / repeat 1 | Response completed; model set contains both `claude-opus-5` and `claude-haiku-4-5-20251001`; 37.639 seconds | NOT_RUN for comparison: `MODEL_MISMATCH` |
-| Remaining 574 slots | No provider invocation | NOT_RUN |
+The latest full-matrix record, `2026-09-10T03-04-01-035Z-v3`, stopped after attempting 69 of 576 planned calls on a Claude weekly-limit response. Its results concern the source and configuration frozen in that archive.
 
-The Claude observation does **not** prove a main-answer fallback. The frozen matcher combines message model IDs and aggregate usage model IDs. Official [Claude Code model documentation](https://code.claude.com/docs/en/model-config) describes a separate Haiku/background model setting. Background use is therefore a plausible explanation, but the retained evidence does not establish the exact role of that Haiku call. Changing the single-model gate or pinning background calls requires a new agreed evaluation contract. Existing observations are preserved.
+| Version | PASS | FAIL | UNCLEAR | NOT_RUN |
+| --- | ---: | ---: | ---: | ---: |
+| Both | 45 | 14 | 9 | 508 |
+| Candidate | 22 | 6 | 6 | 254 |
 
-Codex did not expose a returned model identity in its event stream; its record says `explicit_cli_argument_only`. The command explicitly selected `gpt-6-astra / medium`. Claude and Codex counts in this archive are provider-session invocations, not counts of all underlying API requests.
+`evaluationPassed` and `releaseReady` remain `false`. NOT_RUN includes one failed provider attempt and 507 never-called slots. The quota response reported `<synthetic>` and retained `MODEL_MISMATCH`; it does not prove execution on a fallback model. Automatic selection, default output, and repetitions 2–3 did not run. The focused results are not merged into this archive.
 
-No automatic-selection or default-output case ran in that historical archive. Its lack of selection-regression evidence is not evidence of non-regression. The [earlier Korean improvement report](improvement-report.ko.md) retains that stage's per-Skill counts and local validation; the new report linked above contains the completed Codex comparison.
-
-</details>
+Use the following contract for a newly agreed full evaluation. Current model defaults do not rewrite the settings or results of existing archives.
 
 ## Current matrix and method
 
@@ -90,8 +98,6 @@ Responses are retained as text after removing local fixture paths and credential
 
 ## Review and release criteria
 
-The historical `v0.8.10-beta.1` tag contains the original skill names. Its validation does not certify the renamed installation units. The published v0.9.0-beta.1 Pre-release discloses failures and unresolved evidence. Publication does not change failed evaluation gates; it is not Latest.
-
 Execution can produce `REVIEW_REQUIRED`, `FAIL`, `UNCLEAR`, or `NOT_RUN`. `REVIEW_REQUIRED` needs evidence review; it is not a pass. Reviewers assign `PASS`, `FAIL`, `UNCLEAR`, or `NOT_RUN` and identify missing facts, unsupported claims, and scope violations.
 
 Check the gates in this order:
@@ -102,8 +108,6 @@ Check the gates in this order:
 4. Report `evaluationPassed` for the selected providers. Set `releaseReady` only when both Codex and Claude are selected and validated; a Codex-only pass leaves it false.
 
 Source, fixture, runner, configuration, CLI version, and Docker identity must remain frozen. Explicit resume validates the same inputs and preserves every attempted observation; only never-called slots can continue. An incomplete dispatch journal requires investigation rather than a guessed call count.
-
-The historical baseline commit `09bb976` is absent from the current repository history. The public checkout alone cannot reproduce the original before/after evaluation. Local frozen snapshots remain separate from the distribution; the rename does not restore that history or rerun those evaluations. The current contract uses the available `87b2e06` baseline instead.
 
 ## Execution boundaries and limits
 
@@ -119,7 +123,3 @@ Some CLI streams omit a returned model identity. The observation then records `e
 Three repetitions describe these fixtures. They do not establish a general win rate, production safety, total time savings, or statistically reliable superiority. Label masking reduces explicit grading bias but cannot prevent an evaluator from inferring a version from response content.
 
 </details>
-
-## Historical evidence
-
-Earlier 2026-09-07 observations identified unsupported repair claims in `sharpen-review`, observation/cause confusion in `sharpen-challenge`, guessed platform defaults in `sharpen-assess`, and omitted material uncertainty in `sharpen-brief`. Those observations concern earlier bytes and remain regression targets. They are not passes or measured failures of this revision and are not converted into v3.
