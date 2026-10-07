@@ -82,18 +82,26 @@ Selecting a skill grants no extra permission. You control model settings and edi
 
 ## 4. Update or remove
 
-Save any local skill edits before updating or reinstalling. This updates only the global sharpen-review installation:
+Save any local skill edits before refreshing or reinstalling. Reinstall the named skill from the current default branch to refresh it for Codex and Claude Code:
 
 ```bash
-npx skills update sharpen-review --global
+npx skills add soom-kang/sharpen-me --global \
+  --skill sharpen-review --agent codex claude-code
 ```
 
-To refresh all eight, rerun the first installation command. The following removes only the eight named global skills. Agents sharing these global locations may also lose access to them. Separate project installations remain.
+Treat a failed source check as an unknown update state, even if the command exits successfully or later says all skills are up to date. This occurs in the pinned development CLI, skills 1.5.25, when both the remote check and its Git fallback fail. The explicit reinstall above reports a clone failure instead; restore access and retry it after preserving local edits. Other CLI versions may behave differently. See the [upstream error path](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/update.ts#L647-L683).
+
+To refresh all eight, rerun the first installation command. For removal, run the following from a new empty temporary directory. In skills 1.5.25, global removal from inside a project can also delete same-name project copies through an agent without global support. The empty-directory step avoids that cleanup reaching your project; do not omit it. If set, `CLAUDE_CONFIG_DIR` must be an absolute path before changing directories. See the [upstream cleanup path](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283).
+
+The command targets the eight named global skills. Agents sharing these global locations may also lose access to them. Project installations elsewhere remain.
 
 ```bash
-npx skills remove --global \
-  sharpen-clarify sharpen-review sharpen-challenge sharpen-assess \
-  sharpen-refine sharpen-cold-review sharpen-brief sharpen-dedupe
+(
+  cd "$(mktemp -d)" || exit 1
+  npx skills remove --global \
+    sharpen-clarify sharpen-review sharpen-challenge sharpen-assess \
+    sharpen-refine sharpen-cold-review sharpen-brief sharpen-dedupe
+)
 ```
 
 ## 5. Resolve installation issues

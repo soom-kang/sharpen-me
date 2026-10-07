@@ -15,7 +15,9 @@ Run the local checks before changing a skill. Address a concrete failure or need
    git diff --check
    ```
 
-3. Inspect failures before proceeding. `verify` checks packaging, license copies, metadata, links, syntax, regression tests, and the declared 48-case matrix. The installation suite covers whole and individual installs, copy and symlink modes, reinstall, removal, and coexistence.
+3. Inspect failures before proceeding. `verify` checks packaging, license copies, metadata, links, syntax, regression tests, and the declared 48-case matrix. The project installation suite covers whole and individual installs, copy and symlink modes, reinstall, removal, and coexistence. Two representative global checks cover the default Claude path and `CLAUDE_CONFIG_DIR`, matching files and symlinks, and removal from an empty directory that preserves unrelated skills and project copies. This follows the [documented removal workaround](usage.md#4-update-or-remove) for skills 1.5.25; it does not certify global removal from inside a project.
+
+The installation suite uses disposable home/configuration directories without inherited credentials or agent settings. It runs the lockfile's skills 1.5.25 CLI; the version-free `npx skills` user commands can resolve a different version. These checks verify files and paths, not host discovery or model behavior.
 
 Dry run lists the plan without provider calls, downloads, Docker operations, or archive writes. Local checks do not measure model behavior. You can also run the `skill-creator` validator if it is available locally.
 
