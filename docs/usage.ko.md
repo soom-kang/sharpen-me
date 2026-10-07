@@ -91,12 +91,17 @@ npx skills add soom-kang/sharpen-me --global \
 
 원격 확인에 실패하면 종료 코드가 성공이거나 뒤에 모두 최신이라는 메시지가 나오더라도 갱신 여부는 미확인입니다. 개발 의존성으로 고정한 skills 1.5.25에서는 원격 확인과 대체 Git 조회가 모두 실패할 때 이 현상이 발생합니다. 위의 명시적 재설치 명령은 이 경우 clone 실패를 보고합니다. 접근 문제를 해결하고 로컬 수정본을 보관한 뒤 다시 실행하세요. 다른 CLI 버전의 동작은 다를 수 있습니다. [상위 CLI의 오류 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/update.ts#L647-L683)를 참고하세요.
 
-전체 8개를 갱신하려면 첫 번째 설치 명령을 다시 실행하세요. 다음 명령은 전역 범위에서 지정한 8개 이름만 제거합니다. 공유 경로를 쓰는 다른 에이전트에서도 해당 스킬이 제거될 수 있습니다. 프로젝트에 별도로 설치한 복사본은 남습니다.
+전체 8개를 갱신하려면 첫 번째 설치 명령을 다시 실행하세요. 제거할 때는 아래처럼 새 빈 임시 디렉터리에서 실행하세요. skills 1.5.25는 프로젝트 안에서 전역 제거를 실행하면 전역 설치를 지원하지 않는 에이전트의 정리 경로를 통해 같은 이름의 프로젝트 복사본도 지울 수 있습니다. 빈 디렉터리로 이동하면 이 정리가 프로젝트에 닿지 않으므로 해당 단계를 생략하지 마세요. `CLAUDE_CONFIG_DIR`을 설정했다면 디렉터리를 바꾸기 전에 절대경로로 지정해야 합니다. [상위 CLI의 정리 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283)를 참고하세요.
+
+이 명령은 지정한 8개 전역 스킬을 대상으로 합니다. 공유 경로를 쓰는 다른 에이전트에서도 해당 스킬이 제거될 수 있습니다. 다른 위치의 프로젝트 설치본은 남습니다.
 
 ```bash
-npx skills remove --global \
-  sharpen-clarify sharpen-review sharpen-challenge sharpen-assess \
-  sharpen-refine sharpen-cold-review sharpen-brief sharpen-dedupe
+(
+  cd "$(mktemp -d)" || exit 1
+  npx skills remove --global \
+    sharpen-clarify sharpen-review sharpen-challenge sharpen-assess \
+    sharpen-refine sharpen-cold-review sharpen-brief sharpen-dedupe
+)
 ```
 
 ## 5. 문제 해결하기

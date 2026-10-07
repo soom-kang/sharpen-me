@@ -13,32 +13,44 @@ const source = sourceIndex >= 0 ? process.argv[sourceIndex + 1] : root;
 if (!source) throw new Error('--source requires a local directory or release URL');
 const hash = data => createHash('sha256').update(data).digest('hex');
 
-async function invoke(cwd, args) {
+function isolatedEnv(home) {
+  return {
+    PATH: process.env.PATH, ...(process.env.SystemRoot ? { SystemRoot: process.env.SystemRoot } : {}),
+    HOME: home, USERPROFILE: home, APPDATA: path.join(home, 'AppData/Roaming'),
+    LOCALAPPDATA: path.join(home, 'AppData/Local'),
+    XDG_CONFIG_HOME: path.join(home, '.config'), XDG_STATE_HOME: path.join(home, '.local/state'),
+    XDG_CACHE_HOME: path.join(home, '.cache'), TMPDIR: tmp, TMP: tmp, TEMP: tmp,
+    CI: 'true', DISABLE_TELEMETRY: '1', NODE_DISABLE_COMPILE_CACHE: '1',
+    GIT_CONFIG_NOSYSTEM: '1', GIT_CONFIG_GLOBAL: os.devNull, GIT_TERMINAL_PROMPT: '0',
+  };
+}
+
+async function invoke(cwd, args, env = isolatedEnv(path.join(tmp, 'project-home'))) {
   const result = await run([process.execPath, cli, ...args], {
-    cwd, env: { ...process.env, CI: 'true', DISABLE_TELEMETRY: '1' }, timeoutMs: 60_000,
+    cwd, env, timeoutMs: 60_000,
   });
   if (result.code !== 0 || result.timedOut) throw new Error(`skills ${args[0]} failed: ${result.stderr || result.stdout}`);
   return result.stdout;
 }
 
-async function verifyInstalled(cwd, selected, mode) {
+async function verifyInstalled(cwd, selected, mode, claudeDirectory = '.claude/skills') {
   const projectRoot = await realpath(cwd);
-  for (const agentDirectory of ['.agents/skills', '.claude/skills']) {
-    const installed = (await readdir(path.join(cwd, agentDirectory))).filter(n => n !== 'keep-me').sort();
+  for (const agentDirectory of ['.agents/skills', claudeDirectory]) {
+    const installed = (await readdir(path.resolve(cwd, agentDirectory))).filter(n => n !== 'keep-me').sort();
     if (JSON.stringify(installed) !== JSON.stringify([...selected].sort())) throw new Error(`Wrong installation set in ${agentDirectory}`);
     for (const name of selected) {
       const from = path.join(root, 'skills', name);
-      const into = path.join(cwd, agentDirectory, name);
+      const into = path.resolve(cwd, agentDirectory, name);
       const sourceFiles = await filesBelow(from);
       const installedStat = await lstat(into);
-      const expectSymlink = mode === 'symlink' && agentDirectory === '.claude/skills';
+      const expectSymlink = mode === 'symlink' && agentDirectory === claudeDirectory;
       if (expectSymlink ? !installedStat.isSymbolicLink() : !installedStat.isDirectory() || installedStat.isSymbolicLink()) {
         throw new Error(`Expected ${expectSymlink ? 'symlink' : 'directory'} for ${mode} installation: ${agentDirectory}/${name}`);
       }
       const resolved = await realpath(into);
-      const expectedPath = path.join(projectRoot, mode === 'symlink' ? '.agents/skills' : agentDirectory, name);
+      const expectedPath = path.resolve(projectRoot, mode === 'symlink' ? '.agents/skills' : agentDirectory, name);
       if (resolved !== expectedPath) {
-        throw new Error(`Installed skill resolves outside its expected project path: ${agentDirectory}/${name}`);
+        throw new Error(`Installed skill resolves outside its expected path: ${agentDirectory}/${name}`);
       }
       const installedFiles = (await filesBelow(resolved)).map(file => path.relative(resolved, file)).sort();
       if (JSON.stringify(installedFiles) !== JSON.stringify(sourceFiles.map(file => path.relative(from, file)).sort())) {
@@ -56,6 +68,7 @@ async function verifyInstalled(cwd, selected, mode) {
 
 const tmp = await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-install-'));
 try {
+  await mkdir(path.join(tmp, 'project-home'));
   const all = catalog.map(s => s.name);
   const groups = [all, ...catalog.map(s => [s.name]), all, [catalog[0].name]];
   for (let i = 0; i < groups.length; i++) {
@@ -115,7 +128,43 @@ try {
     }
     console.log(`PASS: old-name removal and new-name installation (${mode})`);
   }
-  console.log('PASS: complete set, standalone installs, reinstall, targeted removal, and unrelated skill preservation');
+  // One representative skill covers global paths; the project suite covers all eight.
+  for (const customClaude of [false, true]) {
+    const label = customClaude ? 'custom-claude' : 'default';
+    const home = path.join(tmp, `global-${label}-home`);
+    const cwd = path.join(tmp, `global-${label}-project`);
+    await mkdir(home);
+    await mkdir(cwd);
+    const env = isolatedEnv(home);
+    if (customClaude) env.CLAUDE_CONFIG_DIR = path.join(tmp, 'custom-claude-config');
+    const directories = [path.join(home, '.agents/skills'),
+      path.join(env.CLAUDE_CONFIG_DIR ?? path.join(home, '.claude'), 'skills')];
+    const name = catalog[0].name;
+    const add = ['add', source, '--skill', name, '--agent', 'codex', 'claude-code', '--yes'];
+    await invoke(cwd, [...add, '--copy'], env);
+    await verifyInstalled(cwd, [name], 'copy');
+    const sentinel = '---\nname: keep-me\ndescription: Unrelated global fixture\n---\nPreserve this skill.\n';
+    for (const dir of directories) {
+      await mkdir(path.join(dir, 'keep-me'), { recursive: true });
+      await writeFile(path.join(dir, 'keep-me/SKILL.md'), sentinel);
+    }
+    await invoke(cwd, [...add, '--global'], env);
+    if (!customClaude) await invoke(cwd, [...add, '--global'], env);
+    await verifyInstalled(home, [name], 'symlink', directories[1]);
+    // skills 1.5.25 can also clean project paths for agents without global support.
+    // Match the documented workaround: remove from an empty disposable directory.
+    const removalCwd = path.join(tmp, `global-${label}-removal`);
+    await mkdir(removalCwd);
+    await invoke(removalCwd, ['remove', name, '--global', '--yes'], env);
+    for (const dir of directories) {
+      try { await lstat(path.join(dir, name)); throw new Error(`Global removal left ${dir}/${name}`); }
+      catch (e) { if (e.code !== 'ENOENT') throw e; }
+      if (await readFile(path.join(dir, 'keep-me/SKILL.md'), 'utf8') !== sentinel) throw new Error('Unrelated global skill changed');
+    }
+    await verifyInstalled(cwd, [name], 'copy');
+    console.log(`PASS: isolated global install and removal (${label}), matching content, links, sentinels and project copy`);
+  }
+  console.log('PASS: project installation suite and representative isolated global paths');
 } finally {
   await rm(tmp, { recursive: true });
 }
