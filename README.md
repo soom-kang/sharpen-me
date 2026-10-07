@@ -17,7 +17,7 @@ Use Node.js 24.20.0 or later and Git, then run in your terminal.
 npx skills add soom-kang/sharpen-me --global --skill '*' --agent codex claude-code
 ```
 
-Confirm the installation when prompted. This installs skills from the current default branch in your user scope. Run an update to receive later changes.
+Confirm the installation when prompted. This installs skills from the current default branch in your user scope. Rerun this command to receive later changes, preserving any local skill edits first.
 
 See [Usage](docs/usage.md) for skill selection, invocation examples, updates, and removal.
 

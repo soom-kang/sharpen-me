@@ -82,11 +82,14 @@ $sharpen-dedupe src/import-a.ts와 src/import-b.ts를 비교해줘. 수정하지
 
 ## 4. 업데이트하거나 제거하기
 
-업데이트·재설치 전에 설치된 스킬에 직접 수정한 내용을 따로 보관하세요. 다음은 전역 `sharpen-review`만 업데이트합니다.
+갱신·재설치 전에 설치된 스킬에 직접 수정한 내용을 따로 보관하세요. 다음은 현재 기본 브랜치에서 지정한 스킬을 다시 설치해 Codex와 Claude Code의 전역 설치본을 갱신합니다.
 
 ```bash
-npx skills update sharpen-review --global
+npx skills add soom-kang/sharpen-me --global \
+  --skill sharpen-review --agent codex claude-code
 ```
+
+원격 확인에 실패하면 종료 코드가 성공이거나 뒤에 모두 최신이라는 메시지가 나오더라도 갱신 여부는 미확인입니다. 개발 의존성으로 고정한 skills 1.5.25에서는 원격 확인과 대체 Git 조회가 모두 실패할 때 이 현상이 발생합니다. 위의 명시적 재설치 명령은 이 경우 clone 실패를 보고합니다. 접근 문제를 해결하고 로컬 수정본을 보관한 뒤 다시 실행하세요. 다른 CLI 버전의 동작은 다를 수 있습니다. [상위 CLI의 오류 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/update.ts#L647-L683)를 참고하세요.
 
 전체 8개를 갱신하려면 첫 번째 설치 명령을 다시 실행하세요. 다음 명령은 전역 범위에서 지정한 8개 이름만 제거합니다. 공유 경로를 쓰는 다른 에이전트에서도 해당 스킬이 제거될 수 있습니다. 프로젝트에 별도로 설치한 복사본은 남습니다.
 
