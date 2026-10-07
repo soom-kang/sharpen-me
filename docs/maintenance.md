@@ -113,9 +113,11 @@ The summary validates source and observation hashes, identities, required checks
 
 The package is private to npm. Use [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases) for published notes. Publication does not change an unmet evaluation gate.
 
+For a documentation/version-only release with unchanged skill files, use `node scripts/verify.mjs` and `git diff --check` locally, check that package and lockfile versions agree, and compare all shipping skill files with the preceding release. Existing Verify CI still runs the regression, installation, and Docker checks on the exact release commit. Do not repeat those suites locally or run a new paid model evaluation solely for the version bump. Skill or evaluation-runner changes require the checks relevant to their behavior.
+
 1. Agree on the version, diff, checks, and release notes. Compare the shipping skill bytes with the evaluated snapshot and disclose the [evaluation limits](evaluation.md).
 2. Obtain approval for commit, main push, tag, and publication. Verify CI must pass on the exact release commit.
-3. Push the agreed annotated tag. Test its URL in a disposable project with `npm run test:install -- --source` followed by that tag's GitHub tree URL.
+3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.3`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
 4. Publish only after the tag install passes. For a Pre-release, use `--verify-tag --prerelease --latest=false`.
 5. If the tag exists or installation fails, inspect the state and hold publication. Do not overwrite a tag to recover.
 

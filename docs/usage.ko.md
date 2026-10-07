@@ -20,6 +20,15 @@ npx skills add soom-kang/sharpen-me --global \
   --skill sharpen-review --agent codex claude-code
 ```
 
+위 명령은 현재 기본 브랜치를 설치합니다. 기본 브랜치는 릴리스 이후에도 변경될 수 있습니다. [v0.9.0-beta.3 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.3)를 고정해서 설치하려면 tag URL을 사용하세요.
+
+```bash
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.3 \
+  --global --skill '*' --agent codex claude-code
+```
+
+재설치 전에 로컬 스킬 수정본을 보관하세요. 같은 tag URL을 다시 실행하면 같은 릴리스를 설치합니다. 이후 변경을 받으려면 새 tag나 기본 브랜치를 선택하세요.
+
 ![전역 스킬 원본을 Codex가 읽고 Claude Code가 링크로 참조하는 구조](assets/global-install.ko.svg)
 
 기본 symlink 방식은 `~/.agents/skills/`에 원본을 두고 Claude Code의 `~/.claude/skills/`에서 연결합니다. Codex는 공통 경로를 사용합니다. `CLAUDE_CONFIG_DIR`을 설정하면 Claude 경로가 달라집니다. 링크를 만들지 못하면 CLI가 복사 방식으로 전환할 수 있습니다.

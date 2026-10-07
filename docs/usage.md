@@ -20,6 +20,15 @@ npx skills add soom-kang/sharpen-me --global \
   --skill sharpen-review --agent codex claude-code
 ```
 
+The commands above install the current default branch, which can advance after a release. To install the fixed [v0.9.0-beta.3 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.3), use its tag URL instead:
+
+```bash
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.3 \
+  --global --skill '*' --agent codex claude-code
+```
+
+Save local skill edits before reinstalling. Rerunning this tag URL installs the same release; choose a newer tag or the default branch to receive later changes.
+
 ![Codex reads the shared global skills; Claude Code references them through a link](assets/global-install.svg)
 
 The default symlink mode stores canonical files in `~/.agents/skills/` and links them from `~/.claude/skills/` for Claude Code. Codex uses the shared location. `CLAUDE_CONFIG_DIR` changes the Claude location. The CLI can fall back to copying if it cannot create a link.

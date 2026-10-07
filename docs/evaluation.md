@@ -2,6 +2,8 @@
 
 **The focused candidate passed; the full evaluation gate remains unmet.** These are separate results. Installation and local checks do not measure model behavior.
 
+The v0.9.0-beta.3 release contains documentation and installation QA updates. Its 24 skill files are byte-for-byte identical to v0.9.0-beta.2. No new model evaluation was run for beta.3; the dated results and unmet gates below retain their original scope.
+
 ## Focused evaluation
 
 The v0.9.0-beta.2 comparison ran on 2026-09-27–28. It covered 12 cases across six skills, before/after instructions, and two providers: 48 comparison slots.

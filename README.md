@@ -9,6 +9,8 @@ Eight skills for clarifying requests, reviewing changes, and refining code and d
 
 [한국어](docs/README.ko.md) · [Usage](docs/usage.md) · [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases)
 
+Current release: [v0.9.0-beta.3](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.3), a GitHub Pre-release with documentation and installation QA updates. The skill files are unchanged from beta.2.
+
 ## Install globally
 
 Use Node.js 24.20.0 or later and Git, then run in your terminal.
@@ -23,7 +25,7 @@ See [Usage](docs/usage.md) for skill selection, invocation examples, updates, an
 
 ## Evaluation limits
 
-The public beta passed all 24 candidate slots in a focused evaluation assembled from 68 calls. The full 576-call evaluation gate remains unmet. Installing the default branch does not establish equivalence to an evaluated release.
+The beta.2 candidate passed all 24 slots in a focused evaluation assembled from 68 calls. Beta.3 retains the same 24 skill files; no new model evaluation was run. The full 576-call evaluation gate remains unmet. Installing the default branch does not establish equivalence to an evaluated release.
 
 [Results and limits](docs/evaluation.md) · [Design](docs/design.md) · [Maintenance](docs/maintenance.md)
 
