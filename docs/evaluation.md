@@ -2,7 +2,7 @@
 
 **The focused candidate passed; the full evaluation gate remains unmet.** These are separate results. Installation and local checks do not measure model behavior.
 
-The v0.9.0-beta.4 release contains evaluator fixes and Homebrew distribution. Its 24 skill files are byte-for-byte identical to v0.9.0-beta.2 and v0.9.0-beta.3. No new model evaluation was run for beta.3 or beta.4; the dated results and unmet gates below retain their original scope. Homebrew packaging and installation checks do not establish agent discovery or model behavior.
+The v0.9.0-beta.4 release contains evaluator fixes and is installed through its GitHub tag with the skills CLI. Its 24 skill files are byte-for-byte identical to v0.9.0-beta.2 and v0.9.0-beta.3. No new model evaluation was run for beta.3 or beta.4; the dated results and unmet gates below retain their original scope. Tag installation checks do not establish agent discovery or model behavior.
 
 The [2026-10-12 QA report (Korean)](qa-2026-10-12.md) records four evaluator defects at `d4c55d3` and the SHARPEN-QA-003–006 fixes shipped in beta.4: credential redaction, JSON/attempt preservation, the final dispatch stop boundary, and partial Skill access evidence. The fixes add regressions to the existing tests; no new provider evaluation ran. They do not change the shipping skills or establish an effect on historical results.
 

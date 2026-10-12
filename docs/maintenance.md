@@ -125,15 +125,30 @@ For a documentation/version-only release with unchanged skill files, use `node s
 
 Use [Usage](usage.md#4-update-or-remove) for global installation updates and removal.
 
-## Homebrew distribution
+## Tag installation records
 
-The public [soom-kang/homebrew-sharpen-me tap](https://github.com/soom-kang/homebrew-sharpen-me) owns the `sharpen-me` formula. It installs release data under `share/sharpen-me/`, including all eight complete Skill units and license notices. It does not add a CLI or runtime service, run a provider, or modify user agent directories. Node.js 24.20.0 or later, npm/npx, and Git remain prerequisites for the separate skills CLI registration documented in [Usage](usage.md#install-with-homebrew).
+Use the release's GitHub tree URL for installation and updates, as shown in [Usage](usage.md#install-with-npx). The tag selects the skill source; it does not pin the skills CLI version or update itself to a newer release.
 
-For each update:
+For global GitHub installations, skills 1.5.25 writes the supplied tag to each skill's `ref` in `~/.agents/.skill-lock.json`. If `XDG_STATE_HOME` is set, the lock file is at `$XDG_STATE_HOME/skills/.skill-lock.json` instead. Other CLI versions may differ. Run this read-only command to inspect only the eight sharpen-me records:
 
-1. Bind the formula URL and SHA-256 to the agreed release archive. Compare the packaged `skills/` inventory and bytes with that tag; keep local paths, credentials, and evaluation archives out of the package.
-2. Check the formula's Ruby syntax and run the available Homebrew audit, installation, and formula test before updating the public tap. Source validation alone does not prove installation. Report unavailable checks explicitly.
-3. Reuse `npm run test:install -- --source <installed-prefix>/share/sharpen-me` to verify the packaged skills in disposable project and user directories. This uses the pinned development skills CLI and preserves the operator's installed skills.
-4. Publish the tap update only after the release and package checks pass. Do not overwrite an existing release tag or weaken archive checksum verification to recover.
+```bash
+node --input-type=module <<'NODE'
+import { readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 
-`brew upgrade` changes the package source; users must rerun the registration command to update agent copies. `brew uninstall sharpen-me` removes the Homebrew package, leaving agent copies in place. Their removal uses the existing empty-directory workaround in [Usage](usage.md#remove-registered-skills). Keep the paired English and Korean instructions consistent with this boundary.
+const names = [
+  'sharpen-assess', 'sharpen-brief', 'sharpen-challenge', 'sharpen-clarify',
+  'sharpen-cold-review', 'sharpen-dedupe', 'sharpen-refine', 'sharpen-review',
+];
+const lockPath = process.env.XDG_STATE_HOME
+  ? join(process.env.XDG_STATE_HOME, 'skills', '.skill-lock.json')
+  : join(homedir(), '.agents', '.skill-lock.json');
+const lock = JSON.parse(readFileSync(lockPath, 'utf8'));
+for (const name of names) {
+  console.log(`${name}\t${lock.skills?.[name]?.ref ?? '(no recorded ref)'}`);
+}
+NODE
+```
+
+After a beta.4 tag installation, each record should show `v0.9.0-beta.4`. A missing record, absent `ref`, or unreadable lock file leaves the installed version unconfirmed; do not infer it from a successful exit code or the global skill list. The record identifies the requested source, not whether local files were edited afterward. When byte identity matters, compare all three files in each installation unit (`SKILL.md`, `agents/openai.yaml`, and `LICENSE`) with the selected tag.

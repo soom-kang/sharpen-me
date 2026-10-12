@@ -10,49 +10,24 @@ Have Node.js 24.20.0 or later, npm/npx, Git, and the Codex or Claude Code app yo
 
 ### Install with npx
 
+Install the [v0.9.0-beta.4 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.4) from its tag:
+
 ```bash
-npx skills add soom-kang/sharpen-me --global --skill '*' --agent codex claude-code
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
+  --global --skill '*' --agent codex claude-code
 npx skills list --global --agent codex claude-code
 ```
 
 Confirm installation when prompted. You can decline the optional find-skills installation. Check that the list contains all eight sharpen-me skills. To install only one skill, run:
 
 ```bash
-npx skills add soom-kang/sharpen-me --global \
-  --skill sharpen-review --agent codex claude-code
-```
-
-The commands above install the current default branch, which can advance after a release. To install the fixed [v0.9.0-beta.4 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.4), use its tag URL instead:
-
-```bash
 npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
-  --global --skill '*' --agent codex claude-code
+  --global --skill sharpen-review --agent codex claude-code
 ```
 
-Save local skill edits before reinstalling. Rerunning this tag URL installs the same release; choose a newer tag or the default branch to receive later changes.
+Save local skill edits before reinstalling. Rerunning this tag URL installs the same release; choose a newer tag to receive a newer release. To use the current default branch instead, replace the tag URL with `soom-kang/sharpen-me`; that source can advance after a release. These user commands do not pin the skills CLI version.
 
-### Install with Homebrew
-
-1. Install the release package from the [sharpen-me tap](https://github.com/soom-kang/homebrew-sharpen-me):
-
-   ```bash
-   brew install soom-kang/sharpen-me/sharpen-me
-   ```
-
-2. Register the packaged skills with Codex and Claude Code:
-
-   ```bash
-   npx skills add "$(brew --prefix sharpen-me)/share/sharpen-me" \
-     --global --skill '*' --agent codex claude-code
-   ```
-
-3. Check that all eight skills appear:
-
-   ```bash
-   npx skills list --global --agent codex claude-code
-   ```
-
-The formula installs release files under Homebrew's prefix, without a new CLI or runtime service. Agent registration is a separate step using the existing skills CLI. It copies the packaged installation units into your agent skill locations; `brew install` alone does not make the skills available to agents. The Node.js, npm/npx, and Git prerequisites above still apply. These user commands do not pin the skills CLI version.
+The global list checks registered names, not the installed tag. See [Tag installation records](maintenance.md#tag-installation-records) to read the eight skills' recorded `ref` values without changing the installation.
 
 ![Codex reads the shared global skills; Claude Code references them through a link](assets/global-install.svg)
 
@@ -118,34 +93,22 @@ Selecting a skill grants no extra permission. You control model settings and edi
 
 Save any local skill edits before refreshing or reinstalling.
 
-### Update a Homebrew installation
+### Update a tagged installation
 
-Upgrade the package, then refresh the agent copies:
-
-```bash
-brew upgrade soom-kang/sharpen-me/sharpen-me
-npx skills add "$(brew --prefix sharpen-me)/share/sharpen-me" \
-  --global --skill '*' --agent codex claude-code
-```
-
-Homebrew does not update registered agent copies. Rerun the registration command even if the package is already current and you only need to refresh those copies. `brew uninstall sharpen-me` removes the Homebrew package and leaves the registered skills in place. To remove them, use the separate removal command below.
-
-### Update an npx installation
-
-Reinstall the named skill from the current default branch to refresh it for Codex and Claude Code:
+Reinstall the named skill from the selected tag to refresh it for Codex and Claude Code. This example keeps beta.4; replace the tag with the release you want when updating to a newer version:
 
 ```bash
-npx skills add soom-kang/sharpen-me --global \
-  --skill sharpen-review --agent codex claude-code
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
+  --global --skill sharpen-review --agent codex claude-code
 ```
 
 Treat a failed source check as an unknown update state, even if the command exits successfully or later says all skills are up to date. This occurs in the pinned development CLI, skills 1.5.25, when both the remote check and its Git fallback fail. The explicit reinstall above reports a clone failure instead; restore access and retry it after preserving local edits. Other CLI versions may behave differently. See the [upstream error path](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/update.ts#L647-L683).
 
-To refresh all eight, rerun the first installation command. For a fixed release, use its tag URL again or choose a newer tag.
+To refresh all eight, rerun the first installation command with the selected tag. Check the [installation records](maintenance.md#tag-installation-records) afterward. Avoid a bulk update command when only these eight skills should change.
 
 ### Remove registered skills
 
-For either installation method, run the following from a new empty temporary directory. In skills 1.5.25, global removal from inside a project can also delete same-name project copies through an agent without global support. The empty-directory step avoids that cleanup reaching your project; do not omit it. If set, `CLAUDE_CONFIG_DIR` must be an absolute path before changing directories. See the [upstream cleanup path](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283).
+Run the following from a new empty temporary directory. In skills 1.5.25, global removal from inside a project can also delete same-name project copies through an agent without global support. The empty-directory step avoids that cleanup reaching your project; do not omit it. If set, `CLAUDE_CONFIG_DIR` must be an absolute path before changing directories. See the [upstream cleanup path](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283).
 
 The command targets the eight named global skills. Agents sharing these global locations may also lose access to them. Project installations elsewhere remain.
 
