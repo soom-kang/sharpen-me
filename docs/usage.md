@@ -10,10 +10,10 @@ Have Node.js 24.20.0 or later, npm/npx, Git, and the Codex or Claude Code app yo
 
 ### Install with npx
 
-Install the [v0.9.0-beta.4 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.4) from its tag:
+Install the [v0.9.0-beta.5 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.5) from its tag:
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.5 \
   --global --skill '*' --agent codex claude-code
 npx skills list --global --agent codex claude-code
 ```
@@ -21,7 +21,7 @@ npx skills list --global --agent codex claude-code
 Confirm installation when prompted. You can decline the optional find-skills installation. Check that the list contains all eight sharpen-me skills. To install only one skill, run:
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.5 \
   --global --skill sharpen-review --agent codex claude-code
 ```
 
@@ -95,10 +95,10 @@ Save any local skill edits before refreshing or reinstalling.
 
 ### Update a tagged installation
 
-Reinstall the named skill from the selected tag to refresh it for Codex and Claude Code. This example keeps beta.4; replace the tag with the release you want when updating to a newer version:
+Reinstall the named skill from the selected tag to refresh it for Codex and Claude Code. This example installs beta.5; replace the tag with the release you want when updating to a newer version:
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.5 \
   --global --skill sharpen-review --agent codex claude-code
 ```
 
