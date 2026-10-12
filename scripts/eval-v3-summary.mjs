@@ -1,6 +1,7 @@
 import { parseResponse } from './eval-observation.mjs';
 import { sha256 } from './eval-resume.mjs';
 import { assertV3, selectedProviders, matrixFor, idOf, validateRecords } from './eval-v3-contract.mjs';
+import { skillSelection } from './eval-v3-observation.mjs';
 export const blindId = record => sha256(`blind:${record.inputHash}:${record.id}`).slice(0, 24);
 export function blindPacket(records, cases) {
   const byCase = new Map(cases.map(c => [c.id, c]));
@@ -10,6 +11,8 @@ export function blindPacket(records, cases) {
       expected: testCase.expected, outputMode: testCase.output, output: record.output ?? '',
       executionEvidence: record.executionEvidence ?? [],
       response: record.response ?? null, loadingEvidence: record.loadingEvidence ?? [],
+      skillAccessEvidence: Array.isArray(record.skillAccessEvidence) ? record.skillAccessEvidence.map(({skill,via,kind,completion,fullSourceObserved}) =>
+        ({skill,via,kind,completion,fullSourceObserved})) : null,
       baselineChecks: record.baselineChecks ?? [], afterChecks: record.afterChecks ?? [],
       changedFiles: record.changedFiles ?? {}, forbiddenChanges: record.forbiddenChanges ?? [],
       execution: { status: record.status, reason: record.reason, providerCompleted: record.providerCompleted },
@@ -19,8 +22,12 @@ export function blindPacket(records, cases) {
 }
 export function structuralStatus(record, testCase) {
   if (!record || !record.providerCalled) return 'NOT_RUN';
-  if (record.status !== 'REVIEW_REQUIRED') return record.status === 'PASS' ? 'UNCLEAR' : record.status;
+  if (record.status === 'NOT_RUN' || record.status === 'FAIL') return record.status;
   if (!record.providerCompleted || record.processExitCode !== 0) return 'NOT_RUN';
+  const access = skillSelection(record.skillAccessEvidence,
+    testCase.invocation === 'implicit' ? testCase.expectedSkills : [testCase.skill], record.providerCompleted);
+  if (access !== 'PASS') return access === 'FAIL' ? 'FAIL' : 'UNCLEAR';
+  if (record.status !== 'REVIEW_REQUIRED') return record.status === 'PASS' ? 'UNCLEAR' : record.status;
   if (record.executionEvidence?.some(e => e.command.missing || e.output.missing || e.command.truncated || e.output.truncated)) return 'UNCLEAR';
   if (!record.output?.trim()) return 'FAIL';
   if (testCase.output === 'json') { try { parseResponse(record.output); } catch { return 'FAIL'; } }
@@ -62,7 +69,8 @@ export function summarize(metadata, records, cases, grades) {
     const status = structural === 'REVIEW_REQUIRED' ? grade?.semantic ?? 'UNCLEAR' : structural;
     counts[status]++;
     rows.push({ skill: item.testCase.skill, provider: item.provider, version: item.version, repeat: item.repeat,
-      category: item.testCase.category, status, selection: !record?.providerCalled || record.status === 'NOT_RUN' ? 'NOT_RUN' : record.selection ?? 'NOT_RUN',
+      category: item.testCase.category, status, selection: !record?.providerCalled || record.status === 'NOT_RUN' || item.testCase.invocation !== 'implicit'
+        ? 'NOT_RUN' : record.selection === 'FAIL' ? 'FAIL' : skillSelection(record.skillAccessEvidence, item.testCase.expectedSkills, record.providerCompleted),
       scopeViolations: (record?.forbiddenChanges?.length ?? 0) + (grade?.scopeViolations.length ?? 0),
       durationMs: record?.durationMs ?? null, usage: record?.usage ?? null, modelEvidence: record?.modelEvidence ?? 'NOT_RUN' });
   }

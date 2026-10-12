@@ -47,3 +47,5 @@ Use Node.js 24.20.0 for development, CI, and fixture checks. The installation mi
 ## Evaluation
 
 See [Evaluation](evaluation.md) for the current counts, contract revision, and acceptance criteria. Provider CLIs run on the host. Host behavior checks of edited files run in a separate Docker container; that boundary does not cover the provider's whole session.
+
+The evaluator separates observed Skill access from complete source loading. Structural selection checks consume the retained access/completion facts before semantic grading. Observations are redacted before JSON serialization. The dispatch journal serializes reservation writes and the final start gate while provider calls remain concurrent; a post-start failure keeps the attempt recorded. See the [local QA fixes](qa-2026-10-12.md) for regression coverage and remaining execution limits.

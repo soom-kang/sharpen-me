@@ -71,14 +71,33 @@ export async function dispatchMatrix(matrix, prior, execute, persist, assertInpu
     for (const item of matrix.filter(m => m.provider === provider)) {
       const previous = records.get(idOf(item));
       if (previous?.providerCalled) continue;
-      let result;
+      let result, providerCalled = false;
+      const control = {
+        stopped: () => halt,
+        stop: reason => { if (stoppingReasons.has(reason)) halt ??= reason; },
+        start: invoke => {
+          if (halt) return null;
+          // run() spawns synchronously; no await may separate this mark and invoke.
+          providerCalled = true;
+          return { result: invoke() };
+        },
+      };
       if (!halt) {
-        try { await assertInputs(); result = await execute(item); }
-        catch { halt = 'HARNESS_ERROR'; }
+        try {
+          await assertInputs();
+          if (!halt) result = await execute(item, control);
+        } catch (error) {
+          const reason = stoppingReasons.has(error.message) ? error.message : 'HARNESS_ERROR';
+          control.stop(reason);
+          result = { status: 'NOT_RUN', reason, providerCalled };
+        }
       }
       if (!result) result = { status: 'NOT_RUN', reason: halt, providerCalled: false };
-      if (stoppingReasons.has(result.reason)) halt = result.reason;
-      const record = await persist(item, result);
+      if (providerCalled) result.providerCalled = true;
+      control.stop(result.reason);
+      let record;
+      try { record = await persist(item, result); }
+      catch (error) { control.stop('HARNESS_ERROR'); throw error; }
       records.set(idOf(item), record);
     }
   }));

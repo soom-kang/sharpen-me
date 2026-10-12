@@ -1,5 +1,94 @@
 import { executionEvidence } from './eval-execution.mjs';
 import { observe, parseEvents } from './eval-observation.mjs';
+const sourceObserved = (text, source) => typeof source === 'string' && source.trim() &&
+  text.split('\n').map(line => line.replace(/^\s*\d+(?:→|\t|\|)/, '')).join('\n').includes(source.trim());
+const resultText = value => typeof value === 'string' ? value : Array.isArray(value)
+  ? value.filter(block => block.type === 'text').map(block => block.text ?? '').join('\n') : undefined;
+const skillPaths = value => {
+  if (typeof value !== 'string') return [];
+  const paths = [...value.matchAll(/(?:^|[\s'"/=])([^/\s'";|&]+)\/SKILL\.md(?=$|[\s'";|&:])/g)];
+  const skills = paths.map(match => /^[a-z0-9-]+$/.test(match[1]) ? match[1] : '<unattributed-skill>');
+  if (!paths.length && /(?:^|[\s'"])SKILL\.md(?=$|[\s'";|&])/.test(value)) skills.push('<unattributed-skill>');
+  return [...new Set(skills)];
+};
+const commandReadSkills = command => {
+  // Recognize ordinary CLI file readers and their shell wrappers. Unrecognized
+  // commands mentioning a Skill path remain incomplete evidence, not no-use.
+  const script = (command ?? '').trim().replace(/^(?:\/(?:usr\/)?bin\/)?(?:ba|z)?sh\s+-[lc]+\s+(['"])([\s\S]*)\1$/, '$2');
+  return script.split(/[;|&]/).filter(part => /^(?:\s*['"])?\s*(?:\/(?:usr\/)?bin\/)?(?:cat|head|tail|sed|awk|grep|rg|more|less|wc)\s/.test(part))
+    .flatMap(skillPaths);
+};
+
+// Access and complete source loading are different evidence. Keep only the
+// minimum attribution/completion facts, never source bytes or tool arguments.
+export function skillAccessEvidence(provider, events, sources) {
+  const evidence = [], pending = new Map();
+  const add = (skill, via, completed, success, text, kind = 'content', allowFullSource = true) => evidence.push({ skill, via, kind,
+    completion: !completed || (kind === 'content' && skill === '<unattributed-skill>') ? 'missing' : !success ? 'failed' : typeof text !== 'string' ? 'missing' : 'success',
+    fullSourceObserved: kind === 'content' && allowFullSource && completed && success && typeof text === 'string' && Boolean(sourceObserved(text, sources[skill])) });
+  for (const event of events) {
+    if (provider === 'codex' && ['item.started','item.completed'].includes(event.type) && event.item?.type === 'command_execution') {
+      const item = event.item, skills = skillPaths(item.command);
+      if (event.type === 'item.started') {
+        if (skills.length && item.id) pending.set(item.id, { skills, via: 'command', readSkills: commandReadSkills(item.command) });
+        else if (skills.length) for (const skill of skills) add(skill, 'command', false, false);
+      } else {
+        const started = pending.get(item.id);
+        const hasCommand = typeof item.command === 'string' && item.command.trim();
+        const accessed = hasCommand ? skills : started?.skills ?? ['<unattributed-skill>'];
+        const readSkills = hasCommand ? commandReadSkills(item.command) : started?.readSkills ?? [];
+        for (const skill of accessed) add(skill, 'command', readSkills.includes(skill) && Number.isInteger(item.exit_code), item.exit_code === 0, item.aggregated_output);
+        pending.delete(item.id);
+      }
+    }
+    if (provider === 'claude' && event.type === 'assistant') {
+      for (const block of event.message?.content ?? []) {
+        if (block.type !== 'tool_use') continue;
+        let skills = [];
+        if (block.name === 'Read') skills = typeof block.input?.file_path === 'string' ? skillPaths(block.input.file_path) : ['<unattributed-skill>'];
+        else if (block.name === 'Skill') skills = [/^[a-z0-9-]+$/.test(block.input?.skill ?? '') ? block.input.skill : '<unattributed-skill>'];
+        else if (['Grep','Glob'].includes(block.name)) {
+          skills = skillPaths(block.input?.path ?? block.input?.glob ?? block.input?.pattern);
+          const inputs = [block.input?.path, block.input?.glob, block.input?.pattern].filter(value => typeof value === 'string');
+          if (!skills.length && inputs.some(value => /(?:^|\/)\.(?:agents|claude)\/skills(?:\/|$)|SKILL\.md/.test(value))) skills = ['<unattributed-skill>'];
+        }
+        if (!skills.length && !['Grep','Glob'].includes(block.name)) continue;
+        const kind = block.name === 'Glob' ? 'discovery' : 'content';
+        const allowFullSource = block.name !== 'Grep' || block.input?.output_mode === 'content';
+        if (block.id) pending.set(block.id, { skills, via: block.name, kind, allowFullSource });
+        else for (const skill of skills) add(skill, block.name, false, false, undefined, kind, allowFullSource);
+      }
+    }
+    if (provider === 'claude' && event.type === 'user') {
+      for (const block of event.message?.content ?? []) {
+        const access = block.type === 'tool_result' && pending.get(block.tool_use_id);
+        if (!access) continue;
+        const text = resultText(block.content);
+        const resultSkills = ['Grep','Glob'].includes(access.via) ? skillPaths(text) : [];
+        const skills = resultSkills.length && (!access.skills.length || access.skills.every(skill => skill === '<unattributed-skill>'))
+          ? resultSkills : access.skills.length ? access.skills
+            : block.is_error || typeof text !== 'string' ? ['<unattributed-skill>'] : [];
+        for (const skill of skills) add(skill, access.via, true, !block.is_error, text, access.kind, access.allowFullSource);
+        pending.delete(block.tool_use_id);
+      }
+    }
+  }
+  for (const { skills, via, kind, allowFullSource } of pending.values()) {
+    for (const skill of skills.length ? skills : ['<unattributed-skill>']) add(skill, via, false, false, undefined, kind, allowFullSource);
+  }
+  return evidence;
+}
+
+export function skillSelection(evidence, expected, providerCompleted) {
+  if (!Array.isArray(evidence) || evidence.some(e => !e || typeof e.skill !== 'string' ||
+      !['Read','Skill','Grep','Glob','command'].includes(e.via) || !['success','failed','missing'].includes(e.completion) ||
+      (e.kind !== undefined && !['content','discovery'].includes(e.kind)) ||
+      typeof e.fullSourceObserved !== 'boolean' || (e.fullSourceObserved && e.completion !== 'success'))) return 'UNCLEAR';
+  if (evidence.some(e => e.completion === 'success' && (e.kind !== 'discovery' || !expected.length) && !expected.includes(e.skill))) return 'FAIL';
+  if (evidence.some(e => e.completion !== 'success')) return 'UNCLEAR';
+  if (!providerCompleted) return 'NOT_RUN';
+  return expected.every(skill => evidence.some(e => e.kind !== 'discovery' && e.skill === skill && e.fullSourceObserved)) ? 'PASS' : 'UNCLEAR';
+}
 export function modelEvidence(provider, events, requestedModel) {
   const primary = new Set(), usageModels = new Set(), evidence = [];
   let usageByModel = {};
@@ -27,31 +116,13 @@ export function modelEvidence(provider, events, requestedModel) {
 }
 export function observeV3(provider, result, testCase, sources, model, fixtureRoot = '<fixture>') {
   const observation = observe(provider, result, testCase.skill, sources[testCase.skill], { output: testCase.output, requireSkill: false });
-  const loaded = [];
   const events = parseEvents(result.stdout);
   observation.executionEvidence = executionEvidence(provider, events, fixtureRoot);
-  for (const [name, contents] of Object.entries(sources)) {
-    const direct = observe(provider, result, name, contents, { output: 'text', requireSkill: false });
-    // Claude's native Skill tool may return the full source instead of issuing Read.
-    const pending = new Set();
-    let native = false;
-    for (const event of events) {
-      for (const block of event.message?.content ?? []) {
-        if (event.type === 'assistant' && block.type === 'tool_use' && block.name === 'Skill' && block.input?.skill === name) pending.add(block.id);
-        if (event.type === 'user' && block.type === 'tool_result' && pending.has(block.tool_use_id) && !block.is_error) {
-          const text = typeof block.content === 'string' ? block.content : (block.content ?? []).map(b => b.text ?? '').join('\n');
-          if (text.includes(contents.trim())) native = true;
-        }
-      }
-    }
-    if (direct.skillRead || native) loaded.push(name);
-  }
+  observation.skillAccessEvidence = skillAccessEvidence(provider, events, sources);
+  const loaded = [...new Set(observation.skillAccessEvidence.filter(e => e.fullSourceObserved).map(e => e.skill))];
   if (observation.reason === 'PROVIDER_ERROR' && /(?:model[^\n]*(?:not.found|not.available|not.supported|does.not.exist|invalid)|unknown.model|invalid.model)/i.test(result.stderr + result.stdout)) { observation.reason = 'MODEL_MISMATCH'; }
   const expected = testCase.invocation === 'implicit' ? testCase.expectedSkills : [testCase.skill];
-  const selection = expected.length === 0
-    ? loaded.length ? 'FAIL' : observation.providerCompleted ? 'PASS' : 'NOT_RUN'
-    : expected.every(name => loaded.includes(name)) && loaded.every(name => expected.includes(name)) ? 'PASS'
-      : loaded.some(name => !expected.includes(name)) ? 'FAIL' : 'UNCLEAR';
+  const selection = skillSelection(observation.skillAccessEvidence, expected, observation.providerCompleted);
   observation.loadedSkills = loaded;
   observation.selection = testCase.invocation === 'implicit' ? selection : null;
   observation.skillRead = loaded.includes(testCase.skill);

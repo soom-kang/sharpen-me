@@ -6,7 +6,7 @@ import { cases } from '../evals/additional-cases.mjs';
 import { catalog } from './catalog.mjs';
 import { run } from './process.mjs';
 import { sourceSnapshot, sha256 } from './eval-resume.mjs';
-import { sanitize } from './eval-observation.mjs';
+import { sanitize, sanitizeObservation } from './eval-observation.mjs';
 import { dockerPreflight, dockerCheck } from './eval-docker.mjs';
 import { observeV3, providerCommand, taskPrompt } from './eval-v3-observation.mjs';
 import { schemaVersion, baseline, selectedProviders, idOf, matrixFor, parseArgs, assertV3, assertSame, seal, validateRecords, dispatchMatrix } from './eval-v3-contract.mjs';
@@ -18,6 +18,31 @@ async function writeJSON(file, value) {
   const temporary = `${file}.tmp`;
   await writeFile(temporary, JSON.stringify(value, null, 2) + '\n');
   await rename(temporary, file);
+}
+export function createProviderDispatch(dispatch, maxCalls, writeJournal) {
+  let queue = Promise.resolve();
+  return async (item, control, invoke) => {
+    const pending = queue.then(async () => {
+      if (control.stopped()) return null;
+      const id = idOf(item);
+      if (dispatch.length >= maxCalls || dispatch.some(d => d.id === id)) throw new Error('CALL_BUDGET_EXCEEDED');
+      const entry = { id, order: dispatch.length + 1, at: new Date().toISOString() };
+      dispatch.push(entry);
+      await writeJournal(structuredClone(dispatch));
+      if (control.stopped()) {
+        // This reservation never spawned. The queue prevents another writer
+        // from interleaving while its cancellation becomes durable.
+        if (dispatch.at(-1) !== entry) throw new Error('Dispatch reservation changed before cancellation');
+        dispatch.pop();
+        await writeJournal(structuredClone(dispatch));
+        return null;
+      }
+      // Wrap the provider promise so the journal queue does not serialize inference.
+      return control.start(invoke);
+    });
+    queue = pending.then(() => {}, () => { control.stop('HARNESS_ERROR'); });
+    return (await pending)?.result;
+  };
 }
 async function inventory() {
   return { skills: await sourceSnapshot(path.join(root, 'skills')), runner: await sourceSnapshot(path.join(root, 'scripts')), fixtures: await sourceSnapshot(path.join(root, 'evals')) };
@@ -150,14 +175,7 @@ export async function main(args = process.argv.slice(2)) {
     if (new Set(dispatch.map(d => d.id)).size !== dispatch.length || dispatch.some(d => !archive.records.get(d.id)?.providerCalled)) throw new Error('Incomplete dispatch evidence: do not automatically repeat an uncertain call');
     if (dispatch.length !== [...archive.records.values()].filter(r => r.providerCalled).length) throw new Error('Dispatch accounting mismatch');
   }
-  // Queue writes across the two lanes so dispatch order is durable before spawn.
-  let logWrite = Promise.resolve();
-  async function markDispatch(item) {
-    if (dispatch.length >= config.maxCalls || dispatch.some(d => d.id === idOf(item))) throw new Error('CALL_BUDGET_EXCEEDED');
-    dispatch.push({ id: idOf(item), order: dispatch.length + 1, at: new Date().toISOString() });
-    const state = structuredClone(dispatch);
-    logWrite = logWrite.then(() => writeJSON(logFile, state)); await logWrite;
-  }
+  const dispatchProvider = createProviderDispatch(dispatch, config.maxCalls, state => writeJSON(logFile, state));
   async function checks(testCase, cwd, phase) {
     const outcomes = [];
     for (const check of testCase.checks ?? []) {
@@ -168,7 +186,7 @@ export async function main(args = process.argv.slice(2)) {
     }
     return outcomes;
   }
-  async function evaluate(item) {
+  async function evaluate(item, control) {
     const { provider, testCase, version } = item;
     const cwd = await realpath(await mkdtemp(path.join(os.tmpdir(), 'sharpen-me-eval-')));
     await chmod(cwd, 0o755);
@@ -182,12 +200,20 @@ export async function main(args = process.argv.slice(2)) {
       const sources = {};
       for (const { name } of catalog) sources[name] = await readFile(path.join(cwd, agentPath, 'skills', name, 'SKILL.md'), 'utf8');
       observation.baselineChecks = await checks(testCase, cwd, 'before');
-      if (observation.baselineChecks.some(c => !c.passed)) return { ...observation, status: 'NOT_RUN', reason: 'HARNESS_ERROR' };
+      if (observation.baselineChecks.some(c => !c.passed)) {
+        control.stop('HARNESS_ERROR');
+        return { ...observation, status: 'NOT_RUN', reason: 'HARNESS_ERROR' };
+      }
       const before = await fixtureSnapshot(cwd);
       await assertInputs();
-      await markDispatch(item); observation.providerCalled = true;
-      const result = await run(providerCommand(provider, testCase, cwd, config), { cwd, input: taskPrompt(provider, testCase), timeoutMs: config.timeoutMs });
+      const argv = providerCommand(provider, testCase, cwd, config), input = taskPrompt(provider, testCase);
+      const result = await dispatchProvider(item, control, () => {
+        observation.providerCalled = true;
+        return run(argv, { cwd, input, timeoutMs: config.timeoutMs });
+      });
+      if (!observation.providerCalled) return { ...observation, status: 'NOT_RUN', reason: control.stopped() };
       Object.assign(observation, observeV3(provider, result, testCase, sources, config.providers[provider].model, cwd));
+      control.stop(observation.reason);
       const after = await fixtureSnapshot(cwd);
       observation.changedPaths = [...new Set([...Object.keys(before), ...Object.keys(after)])].filter(p => before[p] !== after[p]);
       observation.forbiddenChanges = observation.changedPaths.filter(p => !testCase.mutablePaths.includes(p));
@@ -200,9 +226,10 @@ export async function main(args = process.argv.slice(2)) {
       await assertInputs();
     } catch (error) {
       observation.status = 'NOT_RUN'; observation.reason = error.message === 'DOCKER_ISOLATION_FAILED' ? error.message : 'HARNESS_ERROR';
+      control.stop(observation.reason);
       observation.detail = sanitize(error.message, cwd);
     } finally { await rm(cwd, { recursive: true }); }
-    return JSON.parse(sanitize(JSON.stringify(observation), cwd));
+    return sanitizeObservation(observation, cwd);
   }
   const persist = async (item, result) => {
     const record = seal({ schemaVersion, id: idOf(item), provider: item.provider, version: item.version,

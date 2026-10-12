@@ -4,7 +4,7 @@ import { cases } from '../evals/additional-cases.mjs';
 import { readFile } from 'node:fs/promises';
 import { matrixFor, idOf, assertV3, assertSame, seal, validateRecords, dispatchMatrix, parseArgs, selectedProviders } from '../scripts/eval-v3-contract.mjs';
 import { observeV3, taskPrompt, providerCommand, modelEvidence } from '../scripts/eval-v3-observation.mjs';
-import { blindPacket, summarize, blindId } from '../scripts/eval-v3-summary.mjs';
+import { blindPacket, summarize, blindId, structuralStatus } from '../scripts/eval-v3-summary.mjs';
 import { containerCommand, dockerCheck, dockerPreflight } from '../scripts/eval-docker.mjs';
 import { sha256 } from '../scripts/eval-resume.mjs';
 const config = JSON.parse(await readFile(new URL('../evals/config.json', import.meta.url)));
@@ -13,6 +13,7 @@ const normal = cases[0];
 const result = text => ({ stdout: JSON.stringify({type:'item.completed',item:{type:'agent_message',text}})+'\n'+JSON.stringify({type:'turn.completed',usage:{input_tokens:3,output_tokens:2}}), stderr:'', code:0, durationMs:4 });
 const read = text => JSON.stringify({type:'item.completed',item:{type:'command_execution',command:`cat .agents/skills/${normal.skill}/SKILL.md`,exit_code:0,aggregated_output:text}})+'\n';
 const identity = item => ({schemaVersion:3,id:idOf(item),provider:item.provider,version:item.version,case:item.testCase.id,repeat:item.repeat,inputHash:'frozen'});
+const fullAccess = skill => ({skill,via:'command',completion:'success',fullSourceObserved:true});
 
 test('renamed 48-case expectations retain their approved hash and category balance', () => {
   assert.equal(sha256(JSON.stringify(cases)), '8eccbb25a9d41cabc84d61fecc8bb03d549c93366b0333f39479d639b8511a77');
@@ -127,7 +128,7 @@ test('Docker timeout removes only its own container and preflight failure has no
 });
 
 test('blind review hides version identity and binds grades to evidence; unrun blocks release',()=>{
-  const record=seal({...identity(matrix[0]),providerCalled:true,status:'REVIEW_REQUIRED',providerCompleted:true,processExitCode:0,output:JSON.stringify({decision:'done',findings:[],evidence:[],limitations:[],changes:[]}),skillRead:true,loadingEvidence:[{skill:matrix[0].testCase.skill,fullSourceObserved:true}],forbiddenChanges:[],baselineChecks:[],afterChecks:[]});
+  const record=seal({...identity(matrix[0]),providerCalled:true,status:'REVIEW_REQUIRED',providerCompleted:true,processExitCode:0,output:JSON.stringify({decision:'done',findings:[],evidence:[],limitations:[],changes:[]}),skillRead:true,loadingEvidence:[{skill:matrix[0].testCase.skill,fullSourceObserved:true}],skillAccessEvidence:[fullAccess(matrix[0].testCase.skill)],forbiddenChanges:[],baselineChecks:[],afterChecks:[]});
   const packet=blindPacket([record],cases);
   assert.equal(packet.length,1);
   assert.ok(!('version' in packet[0])&&!('provider' in packet[0])&&!('id' in packet[0]));
@@ -198,9 +199,146 @@ test('a complete selected-provider evaluation does not certify a deferred provid
   const items=matrixFor(subset,single);
   const records=items.map(item=>seal({...identity(item),providerCalled:true,status:'REVIEW_REQUIRED',providerCompleted:true,processExitCode:0,
     output:JSON.stringify({decision:'done',findings:[],evidence:[],limitations:[],changes:[]}),skillRead:true,
-    loadingEvidence:[{skill:normal.skill,fullSourceObserved:true}],forbiddenChanges:[],baselineChecks:[],afterChecks:[]}));
+    loadingEvidence:[{skill:normal.skill,fullSourceObserved:true}],skillAccessEvidence:[fullAccess(normal.skill)],forbiddenChanges:[],baselineChecks:[],afterChecks:[]}));
   const grades=records.map(r=>({blindId:blindId(r),evidenceHash:r.evidenceHash,semantic:'PASS',rationale:'Synthetic complete evidence.',missingFacts:[],unsupportedClaims:[],scopeViolations:[]}));
   const summary=summarize({schemaVersion:3,config:single,inputHash:'frozen'},records,subset,grades);
   assert.equal(summary.evaluationPassed,true);assert.equal(summary.releaseReady,false);
   assert.deepEqual(summary.deferredProviders,['claude']);assert.equal(summary.cumulativeAttemptedCalls,292);
+});
+
+const selectionSources = {'sharpen-clarify':'First clarify line.\nEntire clarify procedure.',
+  'sharpen-review':'First review line.\nEntire review procedure.'};
+const selectionCase = expectedSkills => ({...normal,skill:'sharpen-clarify',invocation:'implicit',output:'text',expectedSkills});
+function accessRun(provider, accesses) {
+  const events=[];
+  for(const [index, access] of accesses.entries()) {
+    const id=`access-${index}`,name=access.skill ?? 'sharpen-clarify';
+    if(provider==='codex') {
+      const item={id,type:'command_execution',command:access.command ?? `head -n 1 .agents/skills/${name}/SKILL.md`,exit_code:access.failed ? 1 : 0};
+      if(!access.noContent)item.aggregated_output=access.text;
+      events.push({type:access.missing ? 'item.started' : 'item.completed',item});
+    } else {
+      const tool=access.tool ?? (access.native ? 'Skill' : 'Read');
+      events.push({type:'assistant',message:{content:[{type:'tool_use',id,name:tool,
+        input:access.input ?? (access.native ? {skill:name} : {file_path:`/synthetic/fixture/.claude/skills/${name}/SKILL.md`,limit:20})}]}});
+      if(!access.missing)events.push({type:'user',message:{content:[{type:'tool_result',tool_use_id:id,
+        ...(!access.noContent ? {content:access.text} : {}),is_error:!!access.failed}]}});
+    }
+  }
+  events.push(...(provider==='codex' ? [{type:'item.completed',item:{type:'agent_message',text:'5'}},{type:'turn.completed'}]
+    : [{type:'result',subtype:'success',result:'5'}]));
+  return {stdout:events.map(event=>JSON.stringify(event)).join('\n'),stderr:'',code:0,durationMs:1};
+}
+const select = (provider, accesses, expected=[]) => observeV3(provider,accessRun(provider,accesses),selectionCase(expected),selectionSources,'configured-model');
+
+test('selection rejects successful partial/full unrelated access and preserves the no-read control for both providers',()=>{
+  for(const provider of ['codex','claude']) {
+    assert.equal(select(provider,[]).selection,'PASS');
+    for(const text of ['First clarify line.',selectionSources['sharpen-clarify']]) {
+      const observed=select(provider,[{text}]);
+      assert.equal(observed.selection,'FAIL');assert.equal(observed.status,'FAIL');
+      assert.equal(observed.skillAccessEvidence[0].completion,'success');
+      assert.equal(observed.skillAccessEvidence[0].fullSourceObserved,text===selectionSources['sharpen-clarify']);
+    }
+    assert.equal(select(provider,[{skill:'uninstalled-skill',text:'Other instructions'}]).selection,'FAIL');
+  }
+});
+
+test('positive selection requires complete expected source and rejects expected full plus unrelated partial access',()=>{
+  for(const provider of ['codex','claude']) {
+    const full={text:selectionSources['sharpen-clarify']};
+    assert.equal(select(provider,[full],['sharpen-clarify']).selection,'PASS');
+    assert.equal(select(provider,[{text:'First clarify line.'}],['sharpen-clarify']).selection,'UNCLEAR');
+    assert.equal(select(provider,[full,{skill:'sharpen-review',text:'First review line.'}],['sharpen-clarify']).selection,'FAIL');
+    const explicit=observeV3(provider,accessRun(provider,[full,{skill:'sharpen-review',text:'First review line.'}]),
+      {...selectionCase([]),invocation:'explicit'},selectionSources,'configured-model');
+    assert.equal(explicit.selection,null);assert.equal(explicit.status,'FAIL');
+  }
+  const wrapped=select('codex',[{text:'First clarify line.',command:'/bin/zsh -lc \'sed -n "1p" .agents/skills/sharpen-clarify/SKILL.md\''}]);
+  assert.equal(wrapped.selection,'FAIL');
+});
+
+test('failed/missing Skill traces cannot establish no use and native short replies cannot prove complete source',()=>{
+  for(const provider of ['codex','claude']) for(const access of [{failed:true,text:'Permission denied'},{missing:true},{noContent:true}]) {
+    const observed=select(provider,[access]);
+    assert.equal(observed.selection,'UNCLEAR');assert.equal(observed.status,'UNCLEAR');
+    assert.equal(observed.skillAccessEvidence[0].completion,access.failed ? 'failed' : 'missing');
+    assert.deepEqual(observed.loadedSkills,[]);
+  }
+  const short={native:true,text:'Launching Skill: sharpen-clarify'};
+  assert.equal(select('claude',[short]).selection,'FAIL');
+  assert.equal(select('claude',[short],['sharpen-clarify']).selection,'UNCLEAR');
+  assert.equal(select('claude',[{native:true,text:selectionSources['sharpen-clarify']}],['sharpen-clarify']).selection,'PASS');
+  assert.equal(select('codex',[{command:'echo .agents/skills/sharpen-clarify/SKILL.md',text:'.agents/skills/sharpen-clarify/SKILL.md'}]).selection,'UNCLEAR');
+  assert.equal(select('codex',[{command:'echo .agents/skills/sharpen-clarify/SKILL.md; cat README.md',text:'Other file'}]).selection,'UNCLEAR');
+  assert.equal(select('codex',[{command:'cd .agents/skills; head -n 1 sharpen-review/SKILL.md',text:'First review line.'}]).selection,'FAIL');
+  for(const command of ['cat .agents/skills/*/SKILL.md','cat SKILL.md','cat .agents/skills/${name}/SKILL.md']) {
+    assert.equal(select('codex',[{command,text:'Partial source'}]).selection,'UNCLEAR');
+  }
+  for(const provider of ['codex','claude'])assert.equal(select(provider,[{failed:true,noContent:true}]).skillAccessEvidence[0].completion,'failed');
+  const paired=accessRun('codex',[]);
+  paired.stdout=[{type:'item.started',item:{id:'paired',type:'command_execution',command:'cat .agents/skills/sharpen-clarify/SKILL.md'}},
+    {type:'item.completed',item:{id:'paired',type:'command_execution',exit_code:0,aggregated_output:selectionSources['sharpen-clarify']}}]
+    .map(event=>JSON.stringify(event)).join('\n')+'\n'+paired.stdout;
+  assert.equal(observeV3('codex',paired,selectionCase(['sharpen-clarify']),selectionSources,'configured-model').selection,'PASS');
+  const joined=JSON.parse(paired.stdout.split('\n')[1]);joined.item.command='';
+  const blankCommand={...paired,stdout:paired.stdout.split('\n').map((line,i)=>i===1 ? JSON.stringify(joined) : line).join('\n')};
+  assert.equal(observeV3('codex',blankCommand,selectionCase([]),selectionSources,'configured-model').selection,'FAIL');
+  const noId=JSON.parse(paired.stdout.split('\n')[0]);delete noId.item.id;
+  const missingJoin={...paired,stdout:JSON.stringify(noId)+'\n'+accessRun('codex',[]).stdout};
+  assert.equal(observeV3('codex',missingJoin,selectionCase([]),selectionSources,'configured-model').selection,'UNCLEAR');
+});
+
+test('blind evidence and structural selection prevent semantic PASS from waiving wrong access or missing traces',()=>{
+  const c={...selectionCase([]),id:'selection-negative-test',category:'selection',mutablePaths:[],checks:[]};
+  const single={...config,selectedProviders:['claude'],repeats:1,maxCalls:2};
+  for(const [access,expected] of [[{text:'First clarify line.'},'FAIL'],[{missing:true},'UNCLEAR']]) {
+    const observed=select('claude',[access]);
+    const records=matrixFor([c],single).map(item=>seal({...identity(item),providerCalled:true,...observed,
+      // A stored/semantic PASS cannot overrule the access evidence.
+      status:'REVIEW_REQUIRED',selection:'PASS',baselineChecks:[],afterChecks:[],forbiddenChanges:[],initialization:'discard this'}));
+    const packet=blindPacket(records,[c]);
+    assert.deepEqual(packet[0].skillAccessEvidence,observed.skillAccessEvidence);
+    assert.doesNotMatch(JSON.stringify(packet),/synthetic\/fixture|First clarify line|discard this|tool_use_id/);
+    const grades=records.map(record=>({blindId:blindId(record),evidenceHash:record.evidenceHash,semantic:'PASS',
+      rationale:'The final number is correct.',missingFacts:[],unsupportedClaims:[],scopeViolations:[]}));
+    const summary=summarize({schemaVersion:3,config:single,inputHash:'frozen'},records,[c],grades);
+    assert.equal(summary.counts[expected],2);assert.equal(summary.counts.PASS,0);
+    for(const benchmark of summary.benchmarks)assert.equal(benchmark.selection[expected],1);
+  }
+  const legacy={providerCalled:true,status:'REVIEW_REQUIRED',providerCompleted:true,processExitCode:0,skillRead:true,
+    loadingEvidence:[{skill:c.skill,fullSourceObserved:true}],selection:'PASS'};
+  assert.equal(structuralStatus(legacy,c),'UNCLEAR');
+  assert.equal(structuralStatus({...legacy,status:'FAIL'},c),'FAIL');
+  assert.equal(structuralStatus({...legacy,status:'NOT_RUN'},c),'NOT_RUN');
+  assert.equal(structuralStatus({...legacy,providerCompleted:false,skillAccessEvidence:[]},c),'NOT_RUN');
+  assert.equal(blindPacket([legacy],[{...c,id:undefined}])[0].skillAccessEvidence,null);
+});
+
+test('Grep content inspection remains access in every output mode while Glob discovery never proves loading',()=>{
+  const knownPath='/synthetic/fixture/.claude/skills/sharpen-review/SKILL.md';
+  for(const output_mode of ['content','files_with_matches','count']) {
+    const grep={tool:'Grep',input:{path:knownPath,pattern:'^#',output_mode},text:'1:# Sharpen Review'};
+    const observed=select('claude',[grep]);
+    assert.equal(observed.selection,'FAIL');assert.equal(observed.skillAccessEvidence[0].kind,'content');
+    assert.equal(observed.skillAccessEvidence[0].fullSourceObserved,false);
+    assert.equal(select('claude',[{text:selectionSources['sharpen-clarify']},grep],['sharpen-clarify']).selection,'FAIL');
+  }
+  const directoryGrep={tool:'Grep',input:{path:'/synthetic/fixture/.claude/skills',pattern:'^#',output_mode:'content'},text:'Skill headings'};
+  assert.equal(select('claude',[directoryGrep]).selection,'UNCLEAR');
+  const genericGrep={tool:'Grep',input:{pattern:'First',output_mode:'files_with_matches'},text:knownPath};
+  assert.equal(select('claude',[genericGrep]).selection,'FAIL');
+  assert.deepEqual(select('claude',[genericGrep]).loadedSkills,[]);
+  assert.equal(select('claude',[{...genericGrep,input:{pattern:'First',output_mode:'content'},text:knownPath+':1:First review line.'}]).selection,'FAIL');
+  const glob={tool:'Glob',input:{path:'/synthetic/fixture/.claude/skills',pattern:'**/SKILL.md'},text:knownPath};
+  const discovery=select('claude',[glob]);
+  assert.equal(discovery.selection,'FAIL');assert.equal(discovery.skillAccessEvidence[0].kind,'discovery');
+  assert.deepEqual(discovery.loadedSkills,[]);
+  assert.equal(select('claude',[{text:selectionSources['sharpen-clarify']},glob],['sharpen-clarify']).selection,'PASS');
+  assert.equal(select('claude',[{...glob,missing:true}]).selection,'UNCLEAR');
+  assert.equal(select('claude',[{...glob,failed:true}]).selection,'UNCLEAR');
+  const genericGlob={tool:'Glob',input:{path:'/synthetic/fixture',pattern:'**/*.md'},text:knownPath};
+  assert.equal(select('claude',[genericGlob]).selection,'FAIL');
+  assert.equal(select('claude',[{...genericGlob,missing:true}]).selection,'UNCLEAR');
+  assert.equal(select('claude',[{tool:'Glob',input:{pattern:knownPath},text:selectionSources['sharpen-review']}],['sharpen-review']).selection,'UNCLEAR');
 });

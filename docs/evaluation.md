@@ -4,6 +4,8 @@
 
 The v0.9.0-beta.3 release contains documentation and installation QA updates. Its 24 skill files are byte-for-byte identical to v0.9.0-beta.2. No new model evaluation was run for beta.3; the dated results and unmet gates below retain their original scope.
 
+The [2026-10-12 QA report (Korean)](qa-2026-10-12.md) records four evaluator defects at `d4c55d3` and their local fixes: credential redaction, JSON/attempt preservation, the final dispatch stop boundary, and partial Skill access evidence. The fixes add regressions to the existing tests; no new provider evaluation ran. They do not change the shipping skills or establish an effect on historical results.
+
 ## Focused evaluation
 
 The v0.9.0-beta.2 comparison ran on 2026-09-27–28. It covered 12 cases across six skills, before/after instructions, and two providers: 48 comparison slots.
@@ -88,11 +90,13 @@ New run files use `schemaVersion: 3` and `contractRevision: 4`. The runner and s
 | `frozen/before/skills/` and `frozen/after/skills/` | whole installation units, including metadata and license. |
 | `frozen/scripts/`, `frozen/evals/`, and `frozen/cases.json` | the evaluator and evaluator-only criteria. |
 | `dispatch.json` | unique invocation IDs, order, and start times, written before provider spawn. |
-| `records/provider--version--case-id--rN.json` | response text, parsed JSON when requested, source-loading evidence, paired command/result evidence, usage, duration, changed files, host checks, execution status, and evidence hash. |
+| `records/provider--version--case-id--rN.json` | response text, parsed JSON when requested, complete source-loading evidence, observed Skill access/discovery with completion status, paired command/result evidence, usage, duration, changed files, host checks, execution status, and evidence hash. |
 | `blind-review.json` | opaque identifiers and evaluator evidence, without provider/version/repetition labels. |
 | `summary.json` and `reviewed-summary.json` | category and repetition counts, scope violations, time/usage, selection regressions, and readiness. |
 
-Responses are retained as text after removing local fixture paths and credential-shaped values. Commands and results each have an 8 KiB limit after redaction, with explicit missing and truncation markers. These incomplete records cannot establish a PASS. Full provider initialization streams and account details are not archived. Review packets include expected facts; providers do not receive them. Grading instructions and commands are in [Maintenance](maintenance.md#blind-review-and-summary).
+Observations are redacted structurally before serialization, preserving keys and scalar types. Known string patterns cover `sk-` / `sk-ant-` token prefixes, case-insensitive Bearer headers, and quoted or assignment forms of `token`, `api_key` / `api-key` / `apikey`, and `password`. String fields with those credential keys are also masked recursively. Fixture paths and macOS user-home paths are removed. Custom labels, arbitrary secrets, and all sensitive personal information are outside this pattern contract; redaction alone does not make an archive safe to share. Commands and results each have an 8 KiB limit after redaction, with explicit missing and truncation markers. These incomplete records cannot establish a PASS. Full provider initialization streams and account details are not archived. Review packets include expected facts; providers do not receive them. Grading instructions and commands are in [Maintenance](maintenance.md#blind-review-and-summary).
+
+`skillAccessEvidence` retains only Skill attribution, tool kind, content/discovery kind, completion status, and whether the complete source was observed. It contains no raw tool arguments or source text. Successful unrelated content access fails selection even if only part of the source was returned. A failed, missing, or unattributed content trace remains `UNCLEAR`. Positive selection still requires complete expected source; filename discovery cannot establish loading. Negative fixtures also reject observed unrelated discovery. The summary rechecks these facts before applying a semantic grade and before counting selection results. Missing access evidence cannot establish a PASS.
 
 `baselineChecks` means fixture checks before the provider's edits, not results of the before Skill version. `afterChecks` means checks after the same call. Do not conflate those fields with `version: before/after`.
 
@@ -109,7 +113,7 @@ Check the gates in this order:
 3. Keep structural failures: a semantic PASS cannot override missing source reads, invalid JSON, failed or missing required checks, out-of-scope changes, or incomplete provider execution.
 4. Report `evaluationPassed` for the selected providers. Set `releaseReady` only when both Codex and Claude are selected and validated; a Codex-only pass leaves it false.
 
-Source, fixture, runner, configuration, CLI version, and Docker identity must remain frozen. Explicit resume validates the same inputs and preserves every attempted observation; only never-called slots can continue. An incomplete dispatch journal requires investigation rather than a guessed call count.
+Source, fixture, runner, configuration, CLI version, and Docker identity must remain frozen. Explicit resume validates the same inputs and preserves every attempted observation; only never-called slots can continue. Once provider invocation is attempted, a later collection failure retains `providerCalled: true` and cannot make that slot eligible for retry. A halt before invocation can cancel a known-unstarted journal reservation only after its removal is durably written. Journal or cancellation-write failure leaves uncertain evidence for investigation. An incomplete dispatch journal is never resolved by guessing a call count. The runner changes invalidate older working-input hashes; existing archives are neither rewritten nor regraded by these fixes.
 
 ## Execution boundaries and limits
 
@@ -120,7 +124,7 @@ Provider CLIs execute on the host. Codex uses its sandbox and disabled multi-age
 
 Docker preflight establishes the official image's actual Node version/digest and isolation before provider inference. The container has no network, read-only root and fixture, a nonprivileged user, removed capabilities, and resource limits. No host home, credential store, or Docker socket is mounted. There is no less-isolated fallback.
 
-Some CLI streams omit a returned model identity. The observation then records `explicit_cli_argument_only`, rather than asserting provider-side model verification. A different model in a structured top-level primary response stops execution. Aggregate `usageModels` and numeric `usageByModel` accounting are stored separately; their role is not guessed, and they cannot establish a primary-model mismatch. Source-loading observations can also be incomplete; positive selection without sufficient evidence remains `UNCLEAR`. Negative selection checks completed observable traces for unwanted loading, not the provider's private internal decisions.
+Some CLI streams omit a returned model identity. The observation then records `explicit_cli_argument_only`, rather than asserting provider-side model verification. A different model in a structured top-level primary response triggers a stop before further dispatch; already started peers may complete. Aggregate `usageModels` and numeric `usageByModel` accounting are stored separately; their role is not guessed, and they cannot establish a primary-model mismatch. Source-loading observations can also be incomplete; positive selection without sufficient evidence remains `UNCLEAR`. Selection checks only observable traces, not private internal decisions or every possible shell read. Claude file tools and ordinary Codex file-reader commands are attributed when their Skill path is known; unsupported or dynamic Skill paths retain uncertainty rather than being treated as no-use.
 
 Three repetitions describe these fixtures. They do not establish a general win rate, production safety, total time savings, or statistically reliable superiority. Label masking reduces explicit grading bias but cannot prevent an evaluator from inferring a version from response content.
 

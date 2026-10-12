@@ -26,7 +26,7 @@ Fresh-review fixtures explicitly distinguish a host-isolated invocation from an 
 Compare fixture bytes before and after the call. Any write outside `mutablePaths` fails scope. Do not run edited checks after a forbidden write or a symlink/special-file change. Required behavior checks run in Docker with the Node 24.20.0 boundary described in [Maintenance](../docs/maintenance.md#docker-checks), never through an unrestricted host fallback.
 
 1. Review changed files and required facts. A successful response or passing behavior test alone does not prove consolidation. Record missing facts, unsupported claims, scope violations, and uncertainty.
-2. Verify complete skill-source loading for positive selection. A claim to use a skill is insufficient.
+2. Verify complete skill-source loading for positive selection. A claim to use a skill or filename discovery is insufficient. Review `skillAccessEvidence` separately: successful unrelated content access fails even when partial, while failed, missing, or unattributed traces remain uncertain. Negative cases also reject observed unrelated discovery. Blind packets retain these minimal facts, and structural grading cannot waive them with a semantic PASS.
 3. Inspect paired commands, exit status, and results after redaction. Commands and results each have an 8 KiB limit. Missing or truncated evidence is marked and cannot establish a PASS. Initialization streams and account metadata are not retained.
 
 ## Fixture freeze

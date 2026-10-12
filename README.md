@@ -27,6 +27,6 @@ See [Usage](docs/usage.md) for skill selection, invocation examples, updates, an
 
 The beta.2 candidate passed all 24 slots in a focused evaluation assembled from 68 calls. Beta.3 retains the same 24 skill files; no new model evaluation was run. The full 576-call evaluation gate remains unmet. Installing the default branch does not establish equivalence to an evaluated release.
 
-[Results and limits](docs/evaluation.md) · [Design](docs/design.md) · [Maintenance](docs/maintenance.md)
+[Results and limits](docs/evaluation.md) · [Design](docs/design.md) · [Maintenance](docs/maintenance.md) · [QA report (Korean, 2026-10-12)](docs/qa-2026-10-12.md)
 
 MIT. [License](LICENSE).

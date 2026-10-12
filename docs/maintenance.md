@@ -51,6 +51,8 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
+The local fixes for [SHARPEN-QA-003–006 (Korean)](qa-2026-10-12.md#sharpen-qa-003) add regressions for redaction, attempt preservation, the final dispatch stop boundary, and partial Skill access. They do not change the approved cases, provider configuration, or historical archives. Run the existing checks against the intended source and obtain a new budget agreement before a live evaluation; passing local tests does not establish provider behavior.
+
 1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The [focused comparison](evaluation.md#focused-evaluation) is separate from the full gate.
 2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
 3. Start the agreed evaluation:
@@ -59,7 +61,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
    npm run eval
    ```
 
-4. On interruption, inspect the archive before resuming. Authentication, quota, model mismatch, isolation failure, or harness failure stops new dispatch; an in-flight peer may finish. Timeouts retain their evidence without retry.
+4. On interruption, inspect the archive before resuming. Authentication, quota, model mismatch, isolation failure, or harness failure stops new dispatch; an in-flight peer may finish. The stop gate is checked after preparation and after the serialized journal write, immediately before invocation. Timeouts and post-invocation collection failures retain their attempt status without retry.
 5. To resume, first inspect the remaining plan, then run only with unchanged inputs and environment:
 
    ```bash
@@ -67,7 +69,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
    npm run eval -- --resume eval-results/<v3-directory>
    ```
 
-Resume selects **never-called slots**. Attempted or interrupted calls retain their evidence. An incomplete dispatch journal blocks automatic resume. Repeating a call or changing inputs needs separate agreement and a new evaluation, not a recheck flag.
+Resume selects **never-called slots**. Attempted or interrupted calls retain their evidence. A known-unstarted reservation cancelled by halt is removed through a durable journal rewrite; a failed journal or cancellation write remains an investigation boundary. An incomplete dispatch journal blocks automatic resume. Repeating a call or changing inputs needs separate agreement and a new evaluation, not a recheck flag. Runner changes also change frozen input hashes; preserve earlier archives and do not resume or summarize them with the modified runner.
 
 <details>
 <summary>Frozen baseline, model identity, and archive compatibility</summary>

@@ -27,6 +27,6 @@ npx skills add soom-kang/sharpen-me --global --skill '*' --agent codex claude-co
 
 beta.2의 선별 평가에서 후보 24개 슬롯이 모두 PASS였습니다. 이는 총 68회 호출의 유효한 결과를 모은 판정입니다. beta.3의 스킬 파일 24개는 beta.2와 같으며, 모델 평가를 새로 실행하지 않았습니다. 전체 576회 평가 게이트는 미통과 상태입니다. 기본 브랜치 설치를 특정 릴리스의 평가 결과와 동일시하지 마세요.
 
-[평가 근거와 한계](evaluation.md) · [설계](design.md) · [유지보수](maintenance.md) (영문)
+[평가 근거와 한계](evaluation.md) · [설계](design.md) · [유지보수](maintenance.md) (영문) · [QA 보고서 (2026-10-12)](qa-2026-10-12.md)
 
 MIT. [라이선스](../LICENSE).

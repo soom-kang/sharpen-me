@@ -15,6 +15,18 @@ test('command and result are paired, sanitized and bounded without splitting UTF
   assert.equal(boundedEvidence('x'.repeat(8193),'/fixture').text.length,8192);
 });
 
+test('bounded command evidence redacts Bearer and quoted credential fields with valid JSON retained', () => {
+  const evidence = executionEvidence('codex', [{ type: 'item.completed', item: { type: 'command_execution',
+    command: 'echo Authorization: Bearer QA_HEADER',
+    aggregated_output: '{"api_key":"QA_JSON", "password":"가나다 \\"QA_QUOTED\\"", "summary":"ordinary text"}',
+    exit_code: 0 } }], '/fixture');
+  assert.equal(evidence[0].command.text, 'echo Authorization: Bearer [redacted]');
+  assert.deepEqual(JSON.parse(evidence[0].output.text),
+    { api_key: '[redacted]', password: '[redacted]', summary: 'ordinary text' });
+  assert.equal(evidence[0].output.truncated, false);
+  assert.doesNotMatch(evidence[0].output.text, /QA_JSON|QA_QUOTED/);
+});
+
 test('Claude command results require a matching tool ID and retain missing results', () => {
   const events=[{type:'assistant',message:{content:[{type:'tool_use',name:'Bash',id:'a',input:{command:'node check.mjs'}},
     {type:'tool_use',name:'Bash',id:'b',input:{command:'node later.mjs'}}]}},

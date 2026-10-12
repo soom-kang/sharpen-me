@@ -95,9 +95,42 @@ export function observe(provider, result, skillName, skillText = '', options = {
     processExitCode: result.code, providerCompleted, durationMs: result.durationMs };
 }
 
+const credentialKey = /^(?:token|api[_-]?key|password)$/i;
+const redactValue = value => {
+  const quote = value[0] === '"' || value[0] === "'" ? value[0] : '';
+  return `${quote}[redacted]${quote}`;
+};
+
+// Known credential patterns only; this is not a general secret detector.
+// Preserve labels, whitespace and quote delimiters for readable evidence.
 export function sanitize(text, fixtureRoot) {
-  return text.replaceAll(fixtureRoot, '<fixture>')
-    .replace(/(?:sk-|sk-ant-)[A-Za-z0-9_-]{12,}/g, '[redacted]')
-    .replace(/\b(?:Bearer|token|api[_-]?key|password)\s*[:=]\s*[^\s,}]+/gi, '[redacted]')
-    .replace(/\/Users\/[^/\s]+/g, '<user-home>');
+  const located = typeof fixtureRoot === 'string' && fixtureRoot.length
+    ? text.replaceAll(fixtureRoot, '<fixture>') : text;
+  return located
+    .replace(/(?:sk-ant-|sk-)[A-Za-z0-9_-]{12,}/g, '[redacted]')
+    .replace(/((?:"(?:token|api[_-]?key|password)"|'(?:token|api[_-]?key|password)')\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/gi,
+      (_match, label, value) => label + redactValue(value))
+    .replace(/\b((?:Bearer|token|api[_-]?key|password)\s*[:=]\s*)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,"'\]}]+)/gi,
+      (_match, label, value) => label + redactValue(value))
+    .replace(/\b(Bearer[ \t]+)("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s,"'\]}]+)/gi,
+      (_match, label, value) => label + redactValue(value))
+    .replace(/\/Users\/[^/\s"'\\,}\]]+/g, '<user-home>');
+}
+
+// Sanitize JSON-compatible observations before serialization so a credential
+// assignment at the end of a string cannot consume JSON's closing delimiter.
+export function sanitizeObservation(value, fixtureRoot) {
+  const active = new Set();
+  const visit = input => {
+    if (typeof input === 'string') return sanitize(input, fixtureRoot);
+    if (!input || typeof input !== 'object') return input;
+    if (active.has(input)) throw new TypeError('Observation must be acyclic');
+    active.add(input);
+    const cleaned = Array.isArray(input) ? input.map(visit) : Object.fromEntries(
+      Object.entries(input).map(([key, entry]) => [key,
+        credentialKey.test(key) && typeof entry === 'string' ? '[redacted]' : visit(entry)]));
+    active.delete(input);
+    return cleaned;
+  };
+  return visit(value);
 }

@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { legacyCases as cases } from '../evals/cases.mjs';
 import { assertEvaluationSchema } from '../scripts/eval-contract.mjs';
 import { sha256, sourceSnapshot } from '../scripts/eval-resume.mjs';
+import { dispatchMatrix, idOf } from '../scripts/eval-v3-contract.mjs';
+import { createProviderDispatch } from '../scripts/eval-v3.mjs';
 
 test('case inputs, prompts, checks and expected facts survive the format change', () => {
   assert.equal(cases.length, 16);
@@ -182,4 +184,152 @@ test('new-contract resume validates normalized baseline and current inputs befor
   const summaryDrift = invoke('summarize-v3.mjs', [archive]);
   assert.equal(summaryDrift.status, 1);
   assert.match(summaryDrift.stderr, /FROZEN_INPUT_DRIFT/);
+});
+
+test('halt during input verification or fixture preparation prevents a new peer call', async () => {
+  for (const phase of ['verification', 'preparation']) for (const reason of ['AUTH_ERROR', 'QUOTA_OR_BUDGET', 'DOCKER_ISOLATION_FAILED']) {
+    const items = ['codex', 'claude'].map(provider => ({ provider, version: 'after', testCase: { id: phase }, repeat: 1 }));
+    let release, stopped;
+    const gate = new Promise(resolve => { release = resolve; });
+    const stop = new Promise(resolve => { stopped = resolve; });
+    const calls = [];
+    let checks = 0;
+    const running = dispatchMatrix(items, new Map(), async (item, control) => {
+      if (phase === 'preparation' && item.provider === 'claude') await gate;
+      const started = control.start(() => {
+        calls.push(item.provider);
+        return { providerCalled: true, status: 'NOT_RUN', reason };
+      });
+      return started?.result;
+    }, async (item, result) => {
+      if (item.provider === 'codex') stopped();
+      return { id: idOf(item), ...result };
+    }, async () => { if (++checks === 2 && phase === 'verification') await gate; });
+    await stop;
+    release();
+    const records = await running;
+    assert.deepEqual(calls, ['codex'], `${phase}: ${reason}`);
+    assert.equal(records.find(r => r.id === idOf(items[1])).providerCalled, false);
+  }
+});
+
+test('halt during durable journal write cancels only the unstarted peer reservation', async () => {
+  const items = ['codex', 'claude'].map(provider => ({ provider, version: 'after', testCase: { id: 'journal-halt' }, repeat: 1 }));
+  for (const failCancellation of [false, true]) {
+    let writing, release, stopped;
+    const peerWriting = new Promise(resolve => { writing = resolve; });
+    const writeGate = new Promise(resolve => { release = resolve; });
+    const stop = new Promise(resolve => { stopped = resolve; });
+    const journal = [], writes = [], calls = [];
+    let durable = [];
+    const dispatch = createProviderDispatch(journal, 2, async state => {
+      writes.push(state);
+      if (writes.length === 2) { writing(); await writeGate; }
+      if (failCancellation && writes.length === 3) throw new Error('Synthetic cancellation write failed');
+      durable = state;
+    });
+    const running = dispatchMatrix(items, new Map(), async (item, control) => {
+      const result = await dispatch(item, control, async () => {
+        calls.push(item.provider);
+        await peerWriting;
+        return { providerCalled: true, status: 'NOT_RUN', reason: 'QUOTA_OR_BUDGET' };
+      });
+      return result;
+    }, async (item, result) => {
+      if (item.provider === 'codex') stopped();
+      return { id: idOf(item), ...result };
+    }, async () => {});
+    await stop;
+    release();
+    const records = await running;
+    assert.deepEqual(calls, ['codex']);
+    assert.equal(records.find(r => r.id === idOf(items[1])).providerCalled, false);
+    assert.equal(writes.length, 3);
+    assert.deepEqual(journal.map(d => d.id), [idOf(items[0])]);
+    assert.deepEqual(durable.map(d => d.id), failCancellation ? items.map(idOf) : [idOf(items[0])]);
+    // Failed cancellation leaves a disk reservation with no called record;
+    // the existing resume journal validation must continue to reject it.
+    assert.equal(durable.some(d => !records.find(r => r.id === d.id)?.providerCalled), failCancellation);
+  }
+});
+
+test('journal failure stops queued writes and never starts a provider', async () => {
+  const items = ['codex', 'claude'].map(provider => ({ provider, version: 'after', testCase: { id: 'journal-error' }, repeat: 1 }));
+  const journal = [];
+  let writes = 0, calls = 0;
+  const dispatch = createProviderDispatch(journal, 2, async () => { writes++; throw new Error('Synthetic journal failure'); });
+  const records = await dispatchMatrix(items, new Map(), (item, control) => dispatch(item, control, () => { calls++; }),
+    async (item, result) => ({ id: idOf(item), ...result }), async () => {});
+  assert.equal(writes, 1);
+  assert.equal(calls, 0);
+  assert.equal(journal.length, 1);
+  assert.ok(records.every(r => !r.providerCalled && r.reason === 'HARNESS_ERROR'));
+});
+
+test('a collection error after starting retains its attempt and resume never repeats it', async () => {
+  const item = { provider: 'codex', version: 'after', testCase: { id: 'collection-error' }, repeat: 1 };
+  const journal = [];
+  const dispatch = createProviderDispatch(journal, 1, async () => {});
+  const persist = async (slot, result) => ({ id: idOf(slot), ...result });
+  const records = await dispatchMatrix([item], new Map(), async (slot, control) => {
+    await dispatch(slot, control, () => Promise.resolve('Synthetic completed response'));
+    throw new Error('Synthetic collection failure');
+  }, persist, async () => {});
+  assert.equal(records[0].providerCalled, true);
+  assert.equal(records[0].status, 'NOT_RUN');
+  assert.equal(records[0].reason, 'HARNESS_ERROR');
+  assert.deepEqual(journal.map(d => d.id), records.map(r => r.id));
+  const resumed = await dispatchMatrix([item], new Map(records.map(r => [r.id, r])),
+    async () => { assert.fail('An attempted slot must never be repeated'); }, persist, async () => {});
+  assert.deepEqual(resumed, records);
+});
+
+test('halt preserves already started peer results and serial journal writes allow concurrent inference', async () => {
+  const items = ['codex', 'claude'].map(provider => ({ provider, version: 'after', testCase: { id: 'in-flight' }, repeat: 1 }));
+  let bothStarted, releasePeer, stopped;
+  const started = new Promise(resolve => { bothStarted = resolve; });
+  const peer = new Promise(resolve => { releasePeer = resolve; });
+  const stop = new Promise(resolve => { stopped = resolve; });
+  const calls = [], journal = [], writes = [];
+  const dispatch = createProviderDispatch(journal, 2, async state => { writes.push(state); });
+  const running = dispatchMatrix(items, new Map(), (item, control) => dispatch(item, control, async () => {
+    calls.push(item.provider);
+    if (calls.length === 2) bothStarted();
+    await started;
+    if (item.provider === 'claude') await peer;
+    return { providerCalled: true, status: item.provider === 'codex' ? 'NOT_RUN' : 'REVIEW_REQUIRED',
+      reason: item.provider === 'codex' ? 'QUOTA_OR_BUDGET' : null };
+  }), async (item, result) => {
+    if (item.provider === 'codex') stopped();
+    return { id: idOf(item), ...result };
+  }, async () => {});
+  await stop;
+  releasePeer();
+  const records = await running;
+  assert.deepEqual(calls, ['codex', 'claude']);
+  assert.deepEqual(writes.map(state => state.length), [1, 2]);
+  assert.equal(records.find(r => r.id === idOf(items[1])).status, 'REVIEW_REQUIRED');
+  assert.ok(records.every(r => r.providerCalled));
+});
+
+test('record persistence failure stops a peer waiting in input verification', async () => {
+  const items = ['codex', 'claude'].map(provider => ({ provider, version: 'after', testCase: { id: 'persist-error' }, repeat: 1 }));
+  let release, peerSaved;
+  const gate = new Promise(resolve => { release = resolve; });
+  const saved = new Promise(resolve => { peerSaved = resolve; });
+  let checks = 0;
+  const calls = [];
+  const running = dispatchMatrix(items, new Map(), async (item, control) => control.start(() => {
+    calls.push(item.provider);
+    return { providerCalled: true, status: 'REVIEW_REQUIRED' };
+  })?.result, async (item, result) => {
+    if (item.provider === 'codex') throw new Error('Synthetic record write failure');
+    assert.equal(result.providerCalled, false);
+    peerSaved();
+    return result;
+  }, async () => { if (++checks === 2) await gate; });
+  await assert.rejects(running, /Synthetic record write failure/);
+  release();
+  await saved;
+  assert.deepEqual(calls, ['codex']);
 });

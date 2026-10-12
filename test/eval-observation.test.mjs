@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { observe, sanitize, parseResponse } from '../scripts/eval-observation.mjs';
+import { observe, sanitize, sanitizeObservation, parseResponse } from '../scripts/eval-observation.mjs';
 
 const result = stdout => ({ stdout, stderr: '', code: 0, durationMs: 2 });
 test('a provider self-declared success is not an evaluation pass', () => {
@@ -19,6 +19,54 @@ test('authentication failures remain environmental observations', () => {
 });
 test('saved observations remove fixture roots and credential-shaped values', () => {
   assert.equal(sanitize('/tmp/case/a secret sk-abcdefghijklmnop', '/tmp/case'), '<fixture>/a secret [redacted]');
+});
+
+test('credential formats are redacted without consuming labels, whitespace or quoted boundaries', () => {
+  for (const [input, expected] of [
+    ['Authorization: Bearer QA_HEADER', 'Authorization: Bearer [redacted]'],
+    ['authorization:\tbeAreR\tQA_HEADER', 'authorization:\tbeAreR\t[redacted]'],
+    ['Bearer: QA_LEGACY', 'Bearer: [redacted]'],
+    ['token=QA_ASSIGNMENT', 'token=[redacted]'],
+    ['API-Key = "QA_VALUE with spaces"', 'API-Key = "[redacted]"'],
+    ["password: 'QA_VALUE with spaces'", "password: '[redacted]'"],
+  ]) assert.equal(sanitize(input, '/fixture'), expected);
+  const quoted = '{"API_KEY" : "QA_VALUE", "password":"가나다 \\"quote\\"", "token":"QA_TOKEN"}';
+  assert.deepEqual(JSON.parse(sanitize(quoted, '/fixture')),
+    { API_KEY: '[redacted]', password: '[redacted]', token: '[redacted]' });
+  const normal = '{"summary":"Token counts, API key documentation and password policy.","home":"/Users/example"}';
+  assert.deepEqual(JSON.parse(sanitize(normal, '/fixture')),
+    { summary: 'Token counts, API key documentation and password policy.', home: '<user-home>' });
+});
+
+test('structured observation redaction preserves nested JSON types and does not mutate its input', () => {
+  const unchanged = '가나다 "quoted text"\nToken counts and password policy.';
+  const input = {
+    providerCalled: true, output: 'token=QA_OUTPUT', durationMs: 3, optional: null,
+    response: { decision: unchanged, findings: ['password: QA_FINDING', 'Authorization: Bearer QA_HEADER'] },
+    usage: { token: 4, password: null, api_key: false },
+    nested: [{ TOKEN: 'QA_STRUCTURED', 'api-key': '가나다 "QA_QUOTED"', unchanged }],
+    data: Object.fromEntries([['__proto__', { password: 'QA_PROTOTYPE' }]]),
+  };
+  const cleaned = sanitizeObservation(input, '/fixture');
+  assert.deepEqual(JSON.parse(JSON.stringify(cleaned)), {
+    providerCalled: true, output: 'token=[redacted]', durationMs: 3, optional: null,
+    response: { decision: unchanged, findings: ['password: [redacted]', 'Authorization: Bearer [redacted]'] },
+    usage: { token: 4, password: null, api_key: false },
+    nested: [{ TOKEN: '[redacted]', 'api-key': '[redacted]', unchanged }],
+    data: Object.fromEntries([['__proto__', { password: '[redacted]' }]]),
+  });
+  assert.equal(input.output, 'token=QA_OUTPUT');
+  assert.equal(input.nested[0].TOKEN, 'QA_STRUCTURED');
+  assert.equal(Object.getPrototypeOf(cleaned.data), Object.prototype);
+  assert.equal(Object.hasOwn(cleaned.data, '__proto__'), true);
+});
+
+test('known-pattern redaction leaves unrelated fields intact and rejects cyclic observations', () => {
+  assert.deepEqual(sanitizeObservation({ session_cookie: 'QA_UNSUPPORTED', monkey: 'QA_ORDINARY' }),
+    { session_cookie: 'QA_UNSUPPORTED', monkey: 'QA_ORDINARY' });
+  const cycle = {};
+  cycle.self = cycle;
+  assert.throws(() => sanitizeObservation(cycle, '/fixture'), /Observation must be acyclic/);
 });
 
 const skill = '---\nname: sharpen-clarify\n---\nRead the relevant contract.';
