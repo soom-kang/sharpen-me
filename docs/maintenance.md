@@ -51,7 +51,7 @@ The provider CLIs run on the host with their configured sandbox and file tools. 
 
 ## Live evaluation and resume
 
-The local fixes for [SHARPEN-QA-003–006 (Korean)](qa-2026-10-12.md#sharpen-qa-003) add regressions for redaction, attempt preservation, the final dispatch stop boundary, and partial Skill access. They do not change the approved cases, provider configuration, or historical archives. Run the existing checks against the intended source and obtain a new budget agreement before a live evaluation; passing local tests does not establish provider behavior.
+The beta.4 fixes for [SHARPEN-QA-003–006 (Korean)](qa-2026-10-12.md#sharpen-qa-003) add regressions for redaction, attempt preservation, the final dispatch stop boundary, and partial Skill access. They do not change the approved cases, provider configuration, or historical archives. Run the existing checks against the intended source and obtain a new budget agreement before a live evaluation; passing local tests does not establish provider behavior.
 
 1. Agree on the budget and frozen inputs before a new comparison. [Configuration](../evals/config.json) selects Codex `gpt-6-sol / medium` and Claude Code `claude-opus-5-5 / low`: 180 seconds per call, three repetitions, at most 576 new calls. Keep the historical 290 attempts separate; the cumulative cap is 866. No automatic retry, fallback, or extra paid grader is available. The [focused comparison](evaluation.md#focused-evaluation) is separate from the full gate.
 2. Complete the local and Docker checks. The runner freezes the before/after skill trees, cases, code, configuration, CLI versions, and Docker identity. Do not edit these inputs during the run.
@@ -119,8 +119,21 @@ For a documentation/version-only release with unchanged skill files, use `node s
 
 1. Agree on the version, diff, checks, and release notes. Compare the shipping skill bytes with the evaluated snapshot and disclose the [evaluation limits](evaluation.md).
 2. Obtain approval for commit, main push, tag, and publication. Verify CI must pass on the exact release commit.
-3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.3`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
+3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
 4. Publish only after the tag install passes. For a Pre-release, use `--verify-tag --prerelease --latest=false`.
 5. If the tag exists or installation fails, inspect the state and hold publication. Do not overwrite a tag to recover.
 
 Use [Usage](usage.md#4-update-or-remove) for global installation updates and removal.
+
+## Homebrew distribution
+
+The public [soom-kang/homebrew-sharpen-me tap](https://github.com/soom-kang/homebrew-sharpen-me) owns the `sharpen-me` formula. It installs release data under `share/sharpen-me/`, including all eight complete Skill units and license notices. It does not add a CLI or runtime service, run a provider, or modify user agent directories. Node.js 24.20.0 or later, npm/npx, and Git remain prerequisites for the separate skills CLI registration documented in [Usage](usage.md#install-with-homebrew).
+
+For each update:
+
+1. Bind the formula URL and SHA-256 to the agreed release archive. Compare the packaged `skills/` inventory and bytes with that tag; keep local paths, credentials, and evaluation archives out of the package.
+2. Check the formula's Ruby syntax and run the available Homebrew audit, installation, and formula test before updating the public tap. Source validation alone does not prove installation. Report unavailable checks explicitly.
+3. Reuse `npm run test:install -- --source <installed-prefix>/share/sharpen-me` to verify the packaged skills in disposable project and user directories. This uses the pinned development skills CLI and preserves the operator's installed skills.
+4. Publish the tap update only after the release and package checks pass. Do not overwrite an existing release tag or weaken archive checksum verification to recover.
+
+`brew upgrade` changes the package source; users must rerun the registration command to update agent copies. `brew uninstall sharpen-me` removes the Homebrew package, leaving agent copies in place. Their removal uses the existing empty-directory workaround in [Usage](usage.md#remove-registered-skills). Keep the paired English and Korean instructions consistent with this boundary.

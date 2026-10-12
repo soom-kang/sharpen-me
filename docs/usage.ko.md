@@ -8,6 +8,8 @@
 
 Node.js 24.20.0 이상, npm/npx, Git과 사용할 Codex 또는 Claude Code를 준비하세요. 저장소를 복제할 필요는 없습니다.
 
+### npx로 설치하기
+
 ```bash
 npx skills add soom-kang/sharpen-me --global --skill '*' --agent codex claude-code
 npx skills list --global --agent codex claude-code
@@ -20,14 +22,37 @@ npx skills add soom-kang/sharpen-me --global \
   --skill sharpen-review --agent codex claude-code
 ```
 
-위 명령은 현재 기본 브랜치를 설치합니다. 기본 브랜치는 릴리스 이후에도 변경될 수 있습니다. [v0.9.0-beta.3 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.3)를 고정해서 설치하려면 tag URL을 사용하세요.
+위 명령은 현재 기본 브랜치를 설치합니다. 기본 브랜치는 릴리스 이후에도 변경될 수 있습니다. [v0.9.0-beta.4 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.4)를 고정해서 설치하려면 tag URL을 사용하세요.
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.3 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.4 \
   --global --skill '*' --agent codex claude-code
 ```
 
 재설치 전에 로컬 스킬 수정본을 보관하세요. 같은 tag URL을 다시 실행하면 같은 릴리스를 설치합니다. 이후 변경을 받으려면 새 tag나 기본 브랜치를 선택하세요.
+
+### Homebrew로 설치하기
+
+1. [sharpen-me tap](https://github.com/soom-kang/homebrew-sharpen-me)에서 릴리스 패키지를 설치하세요.
+
+   ```bash
+   brew install soom-kang/sharpen-me/sharpen-me
+   ```
+
+2. 패키지의 스킬을 Codex와 Claude Code에 등록하세요.
+
+   ```bash
+   npx skills add "$(brew --prefix sharpen-me)/share/sharpen-me" \
+     --global --skill '*' --agent codex claude-code
+   ```
+
+3. 목록에 스킬 8개가 표시되는지 확인하세요.
+
+   ```bash
+   npx skills list --global --agent codex claude-code
+   ```
+
+Formula는 Homebrew의 prefix에 릴리스 파일을 설치합니다. 새 CLI나 runtime service는 추가하지 않습니다. 에이전트 등록은 기존 skills CLI로 별도 실행하며, 패키지의 설치 단위를 에이전트 스킬 경로에 복사합니다. `brew install`만으로는 에이전트에서 스킬을 사용할 수 없습니다. 위의 Node.js, npm/npx, Git 요구 사항은 그대로 적용됩니다. 사용자용 명령은 skills CLI 버전을 고정하지 않습니다.
 
 ![전역 스킬 원본을 Codex가 읽고 Claude Code가 링크로 참조하는 구조](assets/global-install.ko.svg)
 
@@ -91,7 +116,23 @@ $sharpen-dedupe src/import-a.ts와 src/import-b.ts를 비교해줘. 수정하지
 
 ## 4. 업데이트하거나 제거하기
 
-갱신·재설치 전에 설치된 스킬에 직접 수정한 내용을 따로 보관하세요. 다음은 현재 기본 브랜치에서 지정한 스킬을 다시 설치해 Codex와 Claude Code의 전역 설치본을 갱신합니다.
+갱신·재설치 전에 설치된 스킬에 직접 수정한 내용을 따로 보관하세요.
+
+### Homebrew 설치본 갱신하기
+
+패키지를 업그레이드한 뒤 에이전트 설치본을 갱신하세요.
+
+```bash
+brew upgrade soom-kang/sharpen-me/sharpen-me
+npx skills add "$(brew --prefix sharpen-me)/share/sharpen-me" \
+  --global --skill '*' --agent codex claude-code
+```
+
+Homebrew는 등록된 에이전트 설치본을 갱신하지 않습니다. 패키지가 이미 최신이어도 에이전트 설치본을 다시 복사하려면 등록 명령을 실행하세요. `brew uninstall sharpen-me`는 Homebrew 패키지만 제거하며 등록된 스킬은 남깁니다. 스킬도 제거하려면 아래의 별도 제거 명령을 사용하세요.
+
+### npx 설치본 갱신하기
+
+다음은 현재 기본 브랜치에서 지정한 스킬을 다시 설치해 Codex와 Claude Code의 전역 설치본을 갱신합니다.
 
 ```bash
 npx skills add soom-kang/sharpen-me --global \
@@ -100,7 +141,11 @@ npx skills add soom-kang/sharpen-me --global \
 
 원격 확인에 실패하면 종료 코드가 성공이거나 뒤에 모두 최신이라는 메시지가 나오더라도 갱신 여부는 미확인입니다. 개발 의존성으로 고정한 skills 1.5.25에서는 원격 확인과 대체 Git 조회가 모두 실패할 때 이 현상이 발생합니다. 위의 명시적 재설치 명령은 이 경우 clone 실패를 보고합니다. 접근 문제를 해결하고 로컬 수정본을 보관한 뒤 다시 실행하세요. 다른 CLI 버전의 동작은 다를 수 있습니다. [상위 CLI의 오류 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/update.ts#L647-L683)를 참고하세요.
 
-전체 8개를 갱신하려면 첫 번째 설치 명령을 다시 실행하세요. 제거할 때는 아래처럼 새 빈 임시 디렉터리에서 실행하세요. skills 1.5.25는 프로젝트 안에서 전역 제거를 실행하면 전역 설치를 지원하지 않는 에이전트의 정리 경로를 통해 같은 이름의 프로젝트 복사본도 지울 수 있습니다. 빈 디렉터리로 이동하면 이 정리가 프로젝트에 닿지 않으므로 해당 단계를 생략하지 마세요. `CLAUDE_CONFIG_DIR`을 설정했다면 디렉터리를 바꾸기 전에 절대경로로 지정해야 합니다. [상위 CLI의 정리 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283)를 참고하세요.
+전체 8개를 갱신하려면 첫 번째 설치 명령을 다시 실행하세요. 릴리스를 고정했다면 같은 tag URL을 다시 사용하거나 새 tag를 선택하세요.
+
+### 등록된 스킬 제거하기
+
+두 설치 방법 모두 아래처럼 새 빈 임시 디렉터리에서 제거 명령을 실행하세요. skills 1.5.25는 프로젝트 안에서 전역 제거를 실행하면 전역 설치를 지원하지 않는 에이전트의 정리 경로를 통해 같은 이름의 프로젝트 복사본도 지울 수 있습니다. 빈 디렉터리로 이동하면 이 정리가 프로젝트에 닿지 않으므로 해당 단계를 생략하지 마세요. `CLAUDE_CONFIG_DIR`을 설정했다면 디렉터리를 바꾸기 전에 절대경로로 지정해야 합니다. [상위 CLI의 정리 경로](https://github.com/vercel-labs/skills/blob/7ffbeb96f012a63c0583a2e71e24385dc497566d/src/remove.ts#L253-L283)를 참고하세요.
 
 이 명령은 지정한 8개 전역 스킬을 대상으로 합니다. 공유 경로를 쓰는 다른 에이전트에서도 해당 스킬이 제거될 수 있습니다. 다른 위치의 프로젝트 설치본은 남습니다.
 
