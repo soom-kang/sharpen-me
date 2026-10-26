@@ -117,13 +117,13 @@ The summary validates source and observation hashes, identities, required checks
 
 The package is private to npm. Use [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases) for published notes. Publication does not change an unmet evaluation gate.
 
-The current release is [v0.9.0-beta.6](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.6), a GitHub Pre-release tagged at `fee7717e74735f595ac0ed0dbdac5e80d7104ad2`. The package and lockfile still declare `0.9.0-beta.4` because the release uses that exact existing commit. Use the GitHub tag and the installation record's `ref` to identify the selected Skill source. Documentation in the published tag retains beta.5 examples; use the beta.6 installation command in the release notes for that snapshot.
+The current release is [v0.9.0-beta.7](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7), a GitHub Pre-release containing the [eight skill revisions](evaluation.md#beta7-skill-revisions-2026-10-26). The package and lockfile both declare `0.9.0-beta.7`. Use the GitHub tag and the installation record's `ref` to identify the selected Skill source; the release notes identify the verified commit and checks.
 
 For a documentation/version-only release with unchanged skill files, use `node scripts/verify.mjs` and `git diff --check` locally, check that package and lockfile versions agree, and compare all shipping skill files with the preceding release. Existing Verify CI still runs the regression, installation, and Docker checks on the exact release commit. Do not repeat those suites locally or run a new paid model evaluation solely for the version bump. Skill or evaluation-runner changes require the checks relevant to their behavior.
 
 1. Agree on the version, diff, checks, and release notes. Compare the shipping skill bytes with the evaluated snapshot and disclose the [evaluation limits](evaluation.md).
 2. Obtain approval for commit, main push, tag, and publication. Verify CI must pass on the exact release commit.
-3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.6`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
+3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
 4. Publish only after the tag install passes. For a Pre-release, use `--verify-tag --prerelease --latest=false`.
 5. If the tag exists or installation fails, inspect the state and hold publication. Do not overwrite a tag to recover.
 
@@ -155,4 +155,4 @@ for (const name of names) {
 NODE
 ```
 
-After a beta.6 tag installation, each record should show `v0.9.0-beta.6`. A missing record, absent `ref`, or unreadable lock file leaves the installed version unconfirmed; do not infer it from a successful exit code or the global skill list. The record identifies the requested source, not whether local files were edited afterward. When byte identity matters, compare all three files in each installation unit (`SKILL.md`, `agents/openai.yaml`, and `LICENSE`) with the selected tag.
+After a beta.7 tag installation, each record should show `v0.9.0-beta.7`. A missing record, absent `ref`, or unreadable lock file leaves the installed version unconfirmed; do not infer it from a successful exit code or the global skill list. The record identifies the requested source, not whether local files were edited afterward. When byte identity matters, compare all three files in each installation unit (`SKILL.md`, `agents/openai.yaml`, and `LICENSE`) with the selected tag.

@@ -1,18 +1,18 @@
 # Evaluation results and limits
 
-**The historical focused candidate passed; the full evaluation gate remains unmet.** The revised checkout described below is not that evaluated candidate. Installation and local checks do not measure model behavior.
+**The historical focused candidate passed; the full evaluation gate remains unmet.** Beta.7's revised instructions are not that evaluated candidate. Installation and local checks do not measure model behavior.
 
-## Unreleased skill revisions (2026-10-26)
+## Beta.7 skill revisions (2026-10-26)
 
 All eight skill instructions and their Codex descriptions/prompts were revised to clarify selection and stopping. Assess now ties deeper reasoning to a specific unresolved problem rather than stakes alone. Dedupe separates observed differences from intent and distinguishes caller migration from redundant-copy removal. [Design](design.md) and the paired [English](usage.md) / [Korean](usage.ko.md) guides describe the boundaries and examples.
 
-These revisions are not in the published beta.6 tag and have not received a new provider evaluation. The 24-pass focused result below remains evidence for its frozen historical sources, not these changes. The approved 48-case matrix, its hashes, provider configuration, and historical archives are unchanged. No new test harness or production dependency was added.
+These revisions ship in v0.9.0-beta.7 and have not received a new provider evaluation. The 24-pass focused result below remains evidence for its frozen historical sources, not these changes. The approved 48-case matrix, its hashes, provider configuration, and historical archives are unchanged. No new test harness or production dependency was added.
 
 Source review covers normal and boundary examples, including high-risk mechanical work, unresolved dedupe intent, caller migration, resolved clarification, missing baselines, and unavailable review isolation. This is a manual consistency check, not a model behavior score. The existing negative selection cases count letters in unrelated words; they do not measure confusion between neighboring skills. The paired requests in the usage guides are examples for a future separately scoped selection evaluation, not newly passing cases.
 
 For this instruction-only change, local verification uses `npm run verify` and `git diff --check`, plus a focused check of the edited skill-map labels. Installation layout, installer code, evaluation runner, and fixture execution are unchanged; installation and Docker suites are not required for this local wording pass. Any provider evaluation still needs a separately agreed scope and budget under [Maintenance](maintenance.md#live-evaluation-and-resume). Local checks cannot establish invocation accuracy, time savings, or provider behavior.
 
-Validation recorded on 2026-10-26:
+Local wording-pass validation recorded on 2026-10-26:
 
 | Check | Result and boundary |
 | --- | --- |
@@ -25,6 +25,8 @@ Validation recorded on 2026-10-26:
 The default Playwright browser cache was unavailable, and a sandboxed Chrome launch failed. Rendering then completed with the installed Chrome in a temporary profile through approved execution, without downloading a browser or using the user's profile.
 
 ## Published release evidence
+
+Beta.7 includes the eight skill revisions above and aligns the package, lockfile, installation examples, and expected global installation `ref` with `v0.9.0-beta.7`. The [release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7) record the release commit's CI and tag-installation results separately from the local wording pass. These packaging checks do not establish model behavior or satisfy the full evaluation gate.
 
 The v0.9.0-beta.4 release contains evaluator fixes and is installed through its GitHub tag with the skills CLI. Its 24 skill files are byte-for-byte identical to v0.9.0-beta.2 and v0.9.0-beta.3. No new model evaluation was run for beta.3 or beta.4; the dated results and unmet gates below retain their original scope. Tag installation checks do not establish agent discovery or model behavior.
 

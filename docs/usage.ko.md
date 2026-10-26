@@ -4,7 +4,7 @@
 
 설치한 스킬을 작업 목적에 맞게 하나 골라 호출하세요. 모든 스킬을 순서대로 실행할 필요는 없습니다.
 
-이 문서는 수정된 checkout을 기준으로 설명합니다. 역할과 종료 조건 개선은 아직 릴리스되지 않았고, 새로운 모델 평가도 받지 않았습니다. 아래 beta.6 설치 명령은 기존에 배포된 지침을 설치합니다. [현재 수정본의 검증 범위](evaluation.md#unreleased-skill-revisions-2026-10-26) (영문)를 참고하세요.
+이 문서는 beta.7에서 정리한 스킬의 호출 경계와 종료 조건을 설명합니다. 수정된 지침의 모델 평가는 아직 실행하지 않았습니다. [검증 범위](evaluation.md#beta7-skill-revisions-2026-10-26) (영문)를 참고하세요.
 
 ## 1. 설치하고 확인하기
 
@@ -12,10 +12,10 @@ Node.js 24.20.0 이상, npm/npx, Git과 사용할 Codex 또는 Claude Code를 �
 
 ### npx로 설치하기
 
-[v0.9.0-beta.6 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.6)의 tag로 설치하세요.
+[v0.9.0-beta.7 Pre-release](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7)의 tag로 설치하세요.
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.6 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7 \
   --global --skill '*' --agent codex claude-code
 npx skills list --global --agent codex claude-code
 ```
@@ -23,7 +23,7 @@ npx skills list --global --agent codex claude-code
 설치 확인 질문에 응답하세요. 선택 사항인 `find-skills` 설치는 거절해도 됩니다. 목록에 sharpen-me 스킬 8개가 표시되면 설치를 확인한 것입니다. 한 스킬만 설치하려면 다음을 실행하세요.
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.6 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7 \
   --global --skill sharpen-review --agent codex claude-code
 ```
 
@@ -114,10 +114,10 @@ $sharpen-dedupe src/import-a.ts와 src/import-b.ts를 비교해줘. 수정하지
 
 ### tag 설치본 갱신하기
 
-선택한 tag에서 지정한 스킬을 다시 설치해 Codex와 Claude Code의 전역 설치본을 갱신하세요. 아래 예시는 beta.6을 설치합니다. 새 버전으로 업데이트하려면 원하는 릴리스의 tag로 바꾸세요.
+선택한 tag에서 지정한 스킬을 다시 설치해 Codex와 Claude Code의 전역 설치본을 갱신하세요. 아래 예시는 beta.7을 설치합니다. 새 버전으로 업데이트하려면 원하는 릴리스의 tag로 바꾸세요.
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.6 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7 \
   --global --skill sharpen-review --agent codex claude-code
 ```
 
