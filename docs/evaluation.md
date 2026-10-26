@@ -1,16 +1,36 @@
 # Evaluation results and limits
 
-**The historical focused candidate passed; the full evaluation gate remains unmet.** Beta.7's revised instructions are not that evaluated candidate. Installation and local checks do not measure model behavior.
+**Beta.7's bounded evaluation recorded 21 PASS and 11 UNCLEAR; the full evaluation gate remains unmet.** The historical beta.2 focused pass concerns different sources. Installation and local checks do not measure model behavior.
+
+## Beta.7 focused evaluation (2026-10-26)
+
+The approved run completed 16 cases × two providers × one observation, using beta.7 commit `bc72c518c1fab29f5b0c4e8a08d95aae710aa69a`. It covers four assess decisions, six dedupe decisions, and six neighboring-skill selection prompts. All eight release units were available in isolated project fixtures. Brief and cold-review were not directly tested.
+
+| Provider | Calls | PASS | FAIL | UNCLEAR | NOT_RUN |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Codex | 16 | 11 | 0 | 5 | 0 |
+| Claude Code | 16 | 10 | 0 | 6 | 0 |
+| Total | **32** | **21** | **0** | **11** | **0** |
+
+**FAIL 0 does not mean no defects.** Manual review assigned 30 PASS and two FAIL: Codex D5 read unrelated skill bodies through a broad hidden-file search, and Claude R2 asserted duplicate-charge behavior despite an unknown provider contract. The frozen summary gives structural UNCLEAR precedence over manual grades, so both remain UNCLEAR in this table. The record retains both layers; neither `focusedPassed` nor `releaseReady` is true.
+
+The remaining uncertainties concern Codex discovery/exclusion globs misclassified as unattributed content, Claude native Skill calls without observable full source, and Claude R5 with no recorded skill access. Both R5 edits preserved the scoped contract and passed the two existing Docker checks before and after. No fixture writes escaped the allowed path. Core assess and dedupe distinctions were present in the responses, but source-access and selection limits prevent a clean pass.
+
+Codex used `gpt-6-sol / medium` (CLI `0.164.0`); Claude used `claude-opus-5-5 / low` (CLI `2.1.310`). Codex identity is supported by explicit CLI arguments only; Claude primary responses reported the requested model. Node was `24.20.0`. Codex retained its native sandbox with disposable child HOME/configuration paths; Claude used restricted tools/settings and a process read restriction for personal context. This does not evaluate unchanged personal-session settings.
+
+Eight earlier diagnostic calls were excluded for global-instruction contamination or nested-sandbox failure. The final count is 40 calls: US$2.3786126 API equivalent for the new 32 plus US$0.6674804 for diagnostics, totaling **US$3.0460930** against a US$15 management budget. This is token-based accounting, not the subscription invoice or a hard billing cap. No automatic retries, fallback, or paid grader ran.
+
+The authoring agent reviewed responses, execution evidence and edits; this was not an independent blind review. Grades bind to evidence hashes. A single version and repetition cannot establish improvement, repeatability, provider superiority, or a general success rate. See the [case-by-case report (Korean)](evaluation-beta7-2026-10-26.ko.md), [plan](../evals/focused-beta7.mjs), and [bounded execution procedure](maintenance.md#bounded-beta7-evaluation). Local `eval-results/focused-beta7-native-2026-10-26/` retains the frozen sources and evidence. The historical archives and full 576-call gate are unchanged.
 
 ## Beta.7 skill revisions (2026-10-26)
 
 All eight skill instructions and their Codex descriptions/prompts were revised to clarify selection and stopping. Assess now ties deeper reasoning to a specific unresolved problem rather than stakes alone. Dedupe separates observed differences from intent and distinguishes caller migration from redundant-copy removal. [Design](design.md) and the paired [English](usage.md) / [Korean](usage.ko.md) guides describe the boundaries and examples.
 
-These revisions ship in v0.9.0-beta.7 and have not received a new provider evaluation. The 24-pass focused result below remains evidence for its frozen historical sources, not these changes. The approved 48-case matrix, its hashes, provider configuration, and historical archives are unchanged. No new test harness or production dependency was added.
+These revisions ship in v0.9.0-beta.7; the separate evaluation above followed the wording and release work. The historical 24-pass result below remains evidence for its own frozen sources. The approved 48-case matrix, its hashes, provider configuration, and historical archives are unchanged. The bounded runner reuses existing evaluation helpers; no production dependency or new test suite was added.
 
-Source review covers normal and boundary examples, including high-risk mechanical work, unresolved dedupe intent, caller migration, resolved clarification, missing baselines, and unavailable review isolation. This is a manual consistency check, not a model behavior score. The existing negative selection cases count letters in unrelated words; they do not measure confusion between neighboring skills. The paired requests in the usage guides are examples for a future separately scoped selection evaluation, not newly passing cases.
+Source review covered normal and boundary examples, including high-risk mechanical work, unresolved dedupe intent, caller migration, resolved clarification, missing baselines, and unavailable review isolation. That manual consistency check is separate from the model observations above. The existing full-matrix negative selection cases count letters in unrelated words; the new bounded plan separately tests six neighboring-skill boundaries. Examples in the usage guides are not independently passing cases.
 
-For this instruction-only change, local verification uses `npm run verify` and `git diff --check`, plus a focused check of the edited skill-map labels. Installation layout, installer code, evaluation runner, and fixture execution are unchanged; installation and Docker suites are not required for this local wording pass. Any provider evaluation still needs a separately agreed scope and budget under [Maintenance](maintenance.md#live-evaluation-and-resume). Local checks cannot establish invocation accuracy, time savings, or provider behavior.
+For the earlier instruction-only change, local verification used `npm run verify` and `git diff --check`, plus a focused check of the edited skill-map labels. Installation layout, installer code, evaluation runner, and fixture execution were unchanged during that wording pass; its local checks did not require installation or Docker suites. The later bounded evaluation is recorded above. Any further provider evaluation needs a separately agreed scope and budget under [Maintenance](maintenance.md#live-evaluation-and-resume). Local checks cannot establish invocation accuracy, time savings, or provider behavior.
 
 Local wording-pass validation recorded on 2026-10-26:
 
@@ -25,6 +45,8 @@ Local wording-pass validation recorded on 2026-10-26:
 The default Playwright browser cache was unavailable, and a sandboxed Chrome launch failed. Rendering then completed with the installed Chrome in a temporary profile through approved execution, without downloading a browser or using the user's profile.
 
 ## Published release evidence
+
+Beta.8 packages the bounded beta.7 case plan, runner, and report. All 24 shipping skill files remain byte-for-byte identical to beta.7, and the evaluation plan retains its original beta.7 tag and commit. Publishing beta.8 does not resolve the recorded defects or unmet gates. The [beta.8 release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.8) identify the exact release commit and its CI and tag-installation checks.
 
 Beta.7 includes the eight skill revisions above and aligns the package, lockfile, installation examples, and expected global installation `ref` with `v0.9.0-beta.7`. The [release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7) record the release commit's CI and tag-installation results separately from the local wording pass. These packaging checks do not establish model behavior or satisfy the full evaluation gate.
 

@@ -88,6 +88,28 @@ Older contracts remain unchanged and are rejected before execution or rewriting.
 
 </details>
 
+## Bounded beta.7 evaluation
+
+The [2026-10-26 plan](../evals/focused-beta7.mjs) is a separate, single-version evaluation: 16 cases, two providers, one observation per case/provider. Its [runner](../scripts/evaluate-focused.mjs) reuses the existing dispatch journal, observation, evidence, and Docker helpers. It does not replace the 576-call comparison or change its archives.
+
+The agreed limit is 32 new CLI task invocations, plus eight excluded diagnostic invocations, for 40 cumulative calls. The US$15 management budget uses recorded token usage and a conservative remaining-call projection. It is not a hard billing cap or a subscription invoice. No automatic retry, fallback, or paid grader is enabled.
+
+```bash
+node scripts/evaluate-focused.mjs --dry-run
+```
+
+The dry run makes no provider call. The authorized live sequence was `--pilot` (four calls), inspection, then `--continue` (28 calls). `--pilot` refuses an existing archive; `--continue` requires exactly four completed dispatch records and unchanged frozen inputs. This is not a general interruption-resume command. Preserve incomplete journals and attempted calls for investigation.
+
+Codex uses a disposable child HOME and CODEX_HOME with a symbolic link to the existing authentication file, outside the fixture and snapshots. Credential contents are not copied. Its native command sandbox remains enabled. Claude Code keeps its restricted tools/settings and a macOS process read restriction for the listed personal instruction, skill, and memory paths. These CLI-version-specific measures were checked without inference before the run. Nesting that external restriction around Codex prevented its native sandbox from starting; `--ignore-user-config` alone did not exclude global AGENTS instructions. These measures separate task context; they are not a claim that every host resource is inaccessible.
+
+Read the sanitized response and source-access evidence for each observation. Save manual grades as `grades.json` in `eval-results/focused-beta7-native-2026-10-26/`, using the fields described below and the packet's exact `blindId` and `evidenceHash`. With the original scripts, cases, CLI versions, and frozen inputs unchanged:
+
+```bash
+node scripts/evaluate-focused.mjs --summarize
+```
+
+The summary preserves structural failures and uncertainties even when the response is semantically correct. `focusedPassed` requires all 32 observations to pass; `releaseReady` is always false for this bounded run. See the [focused report (Korean)](evaluation-beta7-2026-10-26.ko.md) for results, diagnostic exclusions, and evidence limits. Changes to `scripts/` or `evals/` invalidate in-place continuation and summary checks; retain the frozen copies with the archive.
+
 ## Blind review and summary
 
 1. Read `blind-review.json` before version-labeled records. Opaque IDs hide provider, version, and repetition labels; response content may still reveal them. Review the expected facts, response, changed files, and execution evidence.
@@ -117,13 +139,13 @@ The summary validates source and observation hashes, identities, required checks
 
 The package is private to npm. Use [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases) for published notes. Publication does not change an unmet evaluation gate.
 
-The current release is [v0.9.0-beta.7](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7), a GitHub Pre-release containing the [eight skill revisions](evaluation.md#beta7-skill-revisions-2026-10-26). The package and lockfile both declare `0.9.0-beta.7`. Use the GitHub tag and the installation record's `ref` to identify the selected Skill source; the release notes identify the verified commit and checks.
+The current release is [v0.9.0-beta.8](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.8), a GitHub Pre-release containing the [bounded beta.7 evaluation](evaluation.md#beta7-focused-evaluation-2026-10-26) runner and report. All 24 shipping skill files match beta.7. The package and lockfile both declare `0.9.0-beta.8`. Use the GitHub tag and the installation record's `ref` to identify the selected Skill source; the release notes identify the verified commit and checks.
 
 For a documentation/version-only release with unchanged skill files, use `node scripts/verify.mjs` and `git diff --check` locally, check that package and lockfile versions agree, and compare all shipping skill files with the preceding release. Existing Verify CI still runs the regression, installation, and Docker checks on the exact release commit. Do not repeat those suites locally or run a new paid model evaluation solely for the version bump. Skill or evaluation-runner changes require the checks relevant to their behavior.
 
 1. Agree on the version, diff, checks, and release notes. Compare the shipping skill bytes with the evaluated snapshot and disclose the [evaluation limits](evaluation.md).
 2. Obtain approval for commit, main push, tag, and publication. Verify CI must pass on the exact release commit.
-3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
+3. Push the agreed annotated tag. Run the existing isolated installation suite against its GitHub tree URL, for example `npm run test:install -- --source https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.8`. It verifies disposable project installations and representative global paths without changing the operator's installed skills.
 4. Publish only after the tag install passes. For a Pre-release, use `--verify-tag --prerelease --latest=false`.
 5. If the tag exists or installation fails, inspect the state and hold publication. Do not overwrite a tag to recover.
 
@@ -155,4 +177,4 @@ for (const name of names) {
 NODE
 ```
 
-After a beta.7 tag installation, each record should show `v0.9.0-beta.7`. A missing record, absent `ref`, or unreadable lock file leaves the installed version unconfirmed; do not infer it from a successful exit code or the global skill list. The record identifies the requested source, not whether local files were edited afterward. When byte identity matters, compare all three files in each installation unit (`SKILL.md`, `agents/openai.yaml`, and `LICENSE`) with the selected tag.
+After a beta.8 tag installation, each record should show `v0.9.0-beta.8`. A missing record, absent `ref`, or unreadable lock file leaves the installed version unconfirmed; do not infer it from a successful exit code or the global skill list. The record identifies the requested source, not whether local files were edited afterward. When byte identity matters, compare all three files in each installation unit (`SKILL.md`, `agents/openai.yaml`, and `LICENSE`) with the selected tag.

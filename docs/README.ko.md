@@ -9,24 +9,24 @@ Codex와 Claude Code에서 요청을 구체화하고, 변경을 검토하고, �
 
 [English](../README.md) · [사용법](usage.ko.md) · [GitHub Releases](https://github.com/soom-kang/sharpen-me/releases)
 
-현재 릴리스는 [v0.9.0-beta.7](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.7) GitHub Pre-release입니다.
+현재 릴리스는 [v0.9.0-beta.8](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.8) GitHub Pre-release입니다.
 
-- 8개 스킬의 호출 경계와 종료 조건을 명확히 했습니다.
-- `assess`의 변경 위험도와 추론 수준 선택 기준을 분리했습니다.
-- `dedupe`의 동작 동등성 분류와 통합 판단 기준을 정리했습니다.
+- beta.7의 판단 기준과 호출 경계를 확인한 한정 평가 도구를 추가했습니다.
+- 사례별 결과, 관찰 한계, 발견한 결함과 비용을 문서화했습니다.
+- 설치되는 스킬 24개 파일은 beta.7과 동일합니다.
 
-이번 지침의 모델 평가 결과는 아직 없습니다. [수정 범위와 검증 한계](evaluation.md#beta7-skill-revisions-2026-10-26) (영문)를 확인하세요.
+이번 지침의 32회 한정 평가 결과는 PASS 21, UNCLEAR 11입니다. 기존 집계 규칙에 따라 수동 검토에서 발견한 결함 2건도 UNCLEAR에 포함됩니다. [평가 결과와 한계](evaluation-beta7-2026-10-26.ko.md)를 확인하세요.
 
 ## 전역 설치
 
 Node.js 24.20.0 이상과 Git을 준비한 뒤 터미널에서 실행하세요.
 
 ```bash
-npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7 \
+npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.8 \
   --global --skill '*' --agent codex claude-code
 ```
 
-설치 확인 단계에서 내용을 확인하고 진행하세요. 이 명령은 beta.7 tag의 스킬 8개를 사용자 전역 범위에 설치합니다. 같은 tag를 다시 사용하면 같은 릴리스를 설치하며, 업데이트하려면 새 tag를 선택해야 합니다. 재설치 전에 로컬 스킬 수정본을 보관하세요.
+설치 확인 단계에서 내용을 확인하고 진행하세요. 이 명령은 beta.8 tag의 스킬 8개를 사용자 전역 범위에 설치합니다. 같은 tag를 다시 사용하면 같은 릴리스를 설치하며, 업데이트하려면 새 tag를 선택해야 합니다. 재설치 전에 로컬 스킬 수정본을 보관하세요.
 
 [사용법](usage.ko.md)에서 스킬 선택, 호출 예시, 업데이트와 제거 방법을 확인하세요.
 
@@ -34,7 +34,7 @@ npx skills add https://github.com/soom-kang/sharpen-me/tree/v0.9.0-beta.7 \
 
 beta.2의 선별 평가에서 후보 24개 슬롯이 모두 PASS였습니다. 이는 총 68회 호출의 유효한 결과를 모은 판정이며, beta.7에서 수정한 지침을 평가한 결과는 아닙니다.
 
-- beta.7에서 모델 평가를 새로 실행하지 않았습니다.
+- beta.7의 별도 32회 평가는 전체 통과하지 못했습니다. 이전 버전 비교나 반복 안정성을 평가한 결과도 아닙니다.
 - 전체 576회 평가 게이트는 미통과 상태입니다.
 - tag 설치는 소스 버전을 지정하는 방법이며, 새로운 모델 평가를 의미하지 않습니다.
 
