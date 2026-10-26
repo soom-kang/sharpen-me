@@ -2,10 +2,12 @@
 
 Run the local checks before changing a skill. Address a concrete failure or need, keep each installation unit self-contained, and preserve unrelated working-tree changes.
 
+For instruction and metadata wording changes with unchanged installation layout, dependencies, runner, and fixtures, use `npm run verify` and `git diff --check`, plus a normal and boundary example walkthrough for each affected skill. Check edited diagrams as described below. Reuse passing checks until another relevant change, failure, or unresolved concern justifies a rerun. These source checks do not establish model behavior. Run the installation and Docker checks when their behavior is affected or the release procedure requires them; a new provider evaluation still requires an agreed scope and budget.
+
 ## Local checks
 
 1. Use **Node.js 24.20.0** for development and CI. This is also the installation minimum; keep the pinned development dependencies.
-2. From the repository checkout, run:
+2. For changes requiring the full local sequence, run from the repository checkout. Use the scoped wording checks above when applicable:
 
    ```bash
    npm ci --ignore-scripts

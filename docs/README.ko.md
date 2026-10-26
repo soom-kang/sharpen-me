@@ -11,6 +11,14 @@ Codex와 Claude Code에서 요청을 구체화하고, 변경을 검토하고, �
 
 현재 릴리스는 [v0.9.0-beta.6](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.6) GitHub Pre-release입니다. 릴리스와 설치 안내 문서를 갱신했습니다. 스킬 파일 24개는 beta.2, beta.3, beta.4, beta.5와 동일합니다.
 
+현재 checkout에는 아직 릴리스되지 않은 개선이 포함되어 있습니다. [수정 범위와 검증 한계](evaluation.md#unreleased-skill-revisions-2026-10-26) (영문)를 확인하세요.
+
+- 8개 스킬의 호출 경계와 종료 조건을 명확히 했습니다.
+- `assess`의 추론 수준 선택 기준을 정리했습니다.
+- `dedupe`의 동작 분류와 통합 action을 구분했습니다.
+- beta.6 tag에는 이번 개선이 포함되어 있지 않습니다.
+- 이번 수정본의 모델 평가 결과는 아직 없습니다.
+
 ## 전역 설치
 
 Node.js 24.20.0 이상과 Git을 준비한 뒤 터미널에서 실행하세요.

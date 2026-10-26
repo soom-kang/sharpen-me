@@ -15,7 +15,7 @@
 <text x="58" y="353" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Assumptions in a plan</text>
 <rect x="40" y="382" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
 <text x="58" y="410" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-assess</text>
-<text x="58" y="439" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Risk and verification</text>
+<text x="58" y="439" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Risk, capability, effort, verification</text>
 <rect x="40" y="468" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
 <text x="58" y="496" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-brief</text>
 <text x="58" y="525" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Restart or handoff</text>
@@ -28,7 +28,7 @@
 <text x="58" y="755" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Review in a separate context</text>
 <rect x="40" y="784" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
 <text x="58" y="812" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-refine</text>
-<text x="58" y="841" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Scoped code or prose edits</text>
+<text x="58" y="841" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Preserve behavior; correct technical docs</text>
 <rect x="40" y="870" width="560" height="76" rx="6" fill="#ffffff" stroke="#ded9d0"/>
 <text x="58" y="898" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="23" font-weight="700">sharpen-dedupe</text>
 <text x="58" y="927" fill="#202124" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="21" font-weight="400">Shared behavior and ownership</text>

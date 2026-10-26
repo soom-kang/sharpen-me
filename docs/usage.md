@@ -4,6 +4,8 @@
 
 Choose a skill for the task and invoke it. The skills are independent choices, not a required sequence.
 
+This guide describes the revised checkout. The role and stopping-rule updates are unreleased and have not received a new model evaluation; the beta.6 installation below still installs the published instructions. See [current revision limits](evaluation.md#unreleased-skill-revisions-2026-10-26).
+
 ## 1. Install and check
 
 Have Node.js 24.20.0 or later, npm/npx, Git, and the Codex or Claude Code app you use available. You do not need a repository checkout.
@@ -37,18 +39,31 @@ The default symlink mode stores canonical files in `~/.agents/skills/` and links
 
 ![Eight skills grouped by the task you need to do](assets/skill-map.svg)
 
-| Skill | Use it to |
+| Skill | Use it to | Stops when |
+| --- | --- | --- |
+| `sharpen-clarify` | Resolve what the request means | Interpretation is resolved or a consequential choice needs the user |
+| `sharpen-challenge` | Test whether a plan's assumptions support its goal | Decision-relevant assumptions are resolved or their evidence gaps are clear |
+| `sharpen-assess` | Choose capability, reasoning effort, and verification; assess risk separately | Advice or the evidence needed to give it is clear |
+| `sharpen-brief` | Restore current state, blockers, and pending decisions | The requested delta or snapshot and its limits are understandable |
+| `sharpen-review` | Find supported defects against contracts in a change or design | The bounded review is complete or material evidence is missing |
+| `sharpen-cold-review` | Review comprehension or correctness in isolation | One review is complete, evidence is insufficient, or isolation is unavailable |
+| `sharpen-refine` | Preserve code behavior or correct technical documentation from sources | The scoped improvement is verified, a no-op is justified, or a dependent edit is blocked |
+| `sharpen-dedupe` | Decide which implementations can share behavior and ownership | The audit or authorized consolidation is complete within scope |
+
+Choose between related requests by their question:
+
+| Request | Choice |
 | --- | --- |
-| `sharpen-clarify` | Resolve competing readings of a request |
-| `sharpen-challenge` | Test assumptions in a plan |
-| `sharpen-assess` | Assess risk, capability, and verification |
-| `sharpen-brief` | Restore context for a restart or handoff |
-| `sharpen-review` | Find supported defects in changes |
-| `sharpen-cold-review` | Review in a context separate from the author |
-| `sharpen-refine` | Refine code or prose within an edit boundary |
-| `sharpen-dedupe` | Decide what repeated code should share |
+| "What does an empty filter mean?" / "Will this index make the agreed filter faster?" | `clarify` for meaning; `challenge` for the performance premise |
+| "Will this cache strategy work?" / "Does it violate the agreed invalidation contract?" | `challenge` for the mechanism; `review` for a concrete violation |
+| "What capability, effort, and checks does this migration need?" | `assess`; a high-risk label alone does not select deeper reasoning |
+| "Simplify this helper without changing behavior" / "Should these services share one parser?" | `refine` for settled ownership; `dedupe` for equivalence and ownership decisions |
+| "What remains since revision B?" / "Did the test just run pass?" | `brief` for restored context; a direct answer for routine status |
+| "Correct this documented command against the source" / "Only improve the grammar" | `refine` for technical accuracy; a writing skill such as `write-me` for language alone |
 
 Use `sharpen-review` for ordinary change review and `sharpen-cold-review` when independence matters. Invoking `sharpen-cold-review` in the author conversation does not establish independence. It must report `not_run` if a separate context is unavailable.
+
+Neighbor names are selection guidance, not prerequisites to load. A clarification-only request ends with interpretation; inside a larger authorized request, resolved clarification returns to that work. Refine preserves required behavior and intent, while correcting inaccurate documentation from sources. Dedupe defaults to an audit; sharing an owner is not authorized merely by proposing one.
 
 ## 3. Provide the task and its boundaries
 

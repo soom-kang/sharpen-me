@@ -11,6 +11,8 @@ Eight skills for clarifying requests, reviewing changes, and refining code and d
 
 Current release: [v0.9.0-beta.6](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.6), a GitHub Pre-release. It updates the release and installation documentation. The 24 skill files are unchanged from beta.2, beta.3, beta.4, and beta.5.
 
+The revised checkout contains unreleased changes to all eight skills' selection boundaries and stopping rules, including assess's reasoning criteria and dedupe's semantic/action distinctions. These revisions are not included in the beta.6 tag and have no new model-evaluation result. See [revision scope and validation limits](docs/evaluation.md#unreleased-skill-revisions-2026-10-26).
+
 ## Install globally
 
 Use Node.js 24.20.0 or later and Git, then run in your terminal.

@@ -1,7 +1,7 @@
 ---
 name: sharpen-assess
 license: MIT
-description: Assess change exposure, judgment difficulty, and verification separately before recommending model capability and reasoning effort. Use for consequential engineering decisions or execution budgeting; advise without changing the user's settings.
+description: Recommend model capability, reasoning effort, and verification for a bounded task, assessing change risk separately. Use for execution budgeting or risk-and-effort assessment; unresolved request meaning belongs to sharpen-clarify and a plan's unproven mechanism to sharpen-challenge. Advise without changing settings or executing the task.
 ---
 
 # Sharpen Assess
@@ -26,15 +26,15 @@ Estimate what a wrong change could affect and what reasoning the work requires. 
    - `glance` — take the direct path; minimal deliberation.
    - `measured` — ordinary, everyday deliberation.
    - `thorough` — work the alternatives and re-check the assumptions.
-   - `exhaustive` — exhaust the search and re-verify the result.
+   - `exhaustive` — investigate difficult alternatives within the task boundary and independently re-check the decisive reasoning.
 5. Respect explicit user model or effort choices. Report a relevant mismatch and compensating verification without silently replacing the choice.
 6. Name evidence that would raise or lower either assessment and the validation required regardless of model strength.
 
 ## Rules
 
-- **Default the intent to the tier, then deviate with a stated reason.** `fast` pairs with `glance`, `standard` with `measured`, `frontier` with `thorough`; `exhaustive` is held for the highest-stakes work rather than assigned by default.
+- **Default the intent to the tier, then deviate with a stated reason.** `fast` pairs with `glance`, `standard` with `measured`, `frontier` with `thorough`. Recommend `exhaustive` only when a specific unresolved reasoning problem warrants deeper exploration that could change the decision; high stakes alone do not justify it.
 - **The two dials move independently.** Use a higher intent for unresolved reasoning, not for the number of mechanical checks. A brief expert call may need `frontier` with `glance`; a small task with genuinely difficult alternatives may need more deliberation. State the reasoning that requires the deviation.
-- **An intent names a position on a ladder, not a vendor setting.** `glance` is the floor, `measured` the everyday default, `thorough` above it, `exhaustive` the ceiling of whatever the executing model exposes; a model missing an interior position takes the nearest one it has. Resolving an intent to a concrete setting belongs to the executor, and only from a supplied or currently verified catalog. Never invent a model, price, effort level, or automatic mapping.
+- **An intent names a position on a ladder, not a vendor setting.** `glance` is the floor, `measured` the everyday default, `thorough` above it, `exhaustive` the ceiling of whatever the executing model exposes; a model missing an interior position takes the nearest one it has. Resolving an intent to a concrete setting belongs to the executor, and only from a supplied or currently verified catalog. Unless the caller requests a concrete mapping, stop at the neutral tier and intent; do not research providers just to fill the answer. Never invent a model, price, effort level, or automatic mapping.
 - **Deliberation is not capability.** Raising the intent to cover judgment the chosen class cannot reach uses the wrong dial, and more deliberation is not more correct.
 - **Risk beats size.** One destructive statement can be `critical` risk. A mechanical rename with reliable references and complete checks can stay `fast` with `glance`, regardless of file count. Execute exhaustive mechanical checks when needed; their volume alone is not a reason to increase deliberation.
 - **Establish the platform before claiming its semantics.** Familiar syntax does not identify the runtime, its version, or its defaults. Without that evidence, state the verification objective and the missing input instead of prescribing a platform-specific command.
@@ -50,12 +50,13 @@ Honor the caller's schema, including its enums. Without one, give a concise deci
 - `verification`: the checks needed to justify completion, independent of the chosen model.
 - `reassessment_triggers`: per dial, the evidence that would raise it and the evidence that would lower it.
 
-When information is insufficient, qualify the assessment and identify the missing input. Stop after giving the advice; do not execute the task, launch a model, change configuration, or claim verification that has not run.
+For a small task, a recommendation, its exposure and reasoning rationale, and the necessary checks may fit in a few sentences; these are content requirements, not mandatory headings. When information is insufficient, qualify the affected assessment and identify the missing input rather than expanding into a new requirements or architecture exercise. Stop after giving actionable advice or identifying what prevents it; do not execute the task, launch a model, change configuration, or claim verification that has not run.
 
 ## Examples
 
 - Normal: a broad mechanical rename with reliable references and complete tests may need modest capability even though it touches many files. Explain the remaining compatibility exposure separately.
 - Edge: a one-line destructive migration can be high risk. If the user fixes the model choice, preserve it, state the risk and missing recovery evidence, and recommend checks rather than changing the model.
+- Boundary: "Does this retry strategy prevent duplicate effects?" tests a plan's premise and belongs to sharpen-challenge; "What capability, effort, and checks does its implementation need?" belongs here.
 
 ## Completion check
 

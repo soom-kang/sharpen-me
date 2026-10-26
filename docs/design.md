@@ -4,26 +4,32 @@ Each skill defines a bounded procedure. Choose one for the task and set its edit
 
 ## Responsibilities and boundaries
 
-| Skill | Procedure | Completion |
+| Skill | Question | Completion |
 | --- | --- | --- |
-| `sharpen-clarify` | Resolve plausible readings from the request and repository | Ask about consequential unresolved choices; otherwise continue without a forced scope report |
-| `sharpen-review` | Trace supported defects using relevant review perspectives | Report findings or a clean result; compare perspectives only if they change the conclusion |
-| `sharpen-challenge` | Examine assumptions and distinguishing evidence | Retain independent blockers and separate observations from inferred causes |
-| `sharpen-assess` | Separate change exposure, reasoning difficulty, and verification | Recommend capability and effort without changing the user's settings |
-| `sharpen-refine` | Preserve code behavior and prose meaning within authorized edits | Report changes and checks |
-| `sharpen-cold-review` | Establish isolation and choose the evidence boundary | Report bounded findings or `not_run` |
-| `sharpen-brief` | Bound changed history by a baseline and include current blockers | Report relevant state without invented questions or a fixed follow-up offer |
-| `sharpen-dedupe` | Distinguish shared behavior from ownership and action | Propose or perform authorized changes; `keep` intentional differences and `defer` missing evidence |
+| `sharpen-clarify` | What outcome and scope does the request mean? | Resolve the interpretation or ask about the blocking choice; return to a larger authorized task when resolved |
+| `sharpen-review` | Does this change or design violate a relevant contract? | Report bounded findings or no supported defect; distinguish any authorized fixes and their checks |
+| `sharpen-challenge` | Does the evidence support the plan's mechanism? | Resolve decision-relevant assumptions or identify the smallest missing evidence, preserving independent blockers |
+| `sharpen-assess` | What capability, reasoning effort, and verification does this task need? | Give advice with exposure assessed separately, or identify what prevents it; leave settings unchanged |
+| `sharpen-refine` | How can the scoped artifact improve while preserving its contracts and intent? | Verify the authorized improvement or explain a no-op; stop dependent edits at a behavior or scope boundary |
+| `sharpen-cold-review` | Does the artifact hold up without the author's explanation? | Complete one isolated review, report insufficient permitted evidence, or report `not_run` if isolation is unavailable |
+| `sharpen-brief` | What is the current state, and which decisions or blockers remain? | Provide an evidenced delta or snapshot with verification limits; do not resolve product decisions |
+| `sharpen-dedupe` | Which implementations can share behavior and ownership? | Finish the bounded audit or authorized consolidation; distinguish proposed actions from actual migrations |
 
 A review or challenge can find no defect. All eight skills allow automatic selection, but metadata alone does not prove that an agent selected or loaded one. Evaluation records explicit behavior and implicit selection evidence separately.
+
+Choose by the question, not the file type or file count. A design can need either a contract review or an assumption challenge. An internal helper extraction with settled ownership fits refine; deciding equivalence and a shared owner fits dedupe. A routine status answer or grammar-only edit does not require this suite's repository workflow.
+
+Neighboring skill names explain selection boundaries; they are not installation dependencies or an automatic execution chain. Use the procedure needed for the user's request, and hand back to the caller once it is complete. A clarification-only request ends after interpretation; a resolved clarification inside an authorized implementation request does not require another approval.
 
 ## Output and authorization
 
 You control which files may change, the model settings, and the response format. Selecting a skill grants no extra permission. The default response is concise prose; a format you request takes precedence.
 
-`sharpen-refine` can edit code blocks, tables, or authored text when your request authorizes those edits. Protected areas and unrelated changes stay intact. For `sharpen-dedupe`, proposing a shared owner does not authorize creating one: consolidation requires an implementation request.
+`sharpen-refine` can edit code blocks, tables, or authored text when your request authorizes those edits. It preserves code behavior and the author's requirements, decisions, and uncertainty; it corrects inaccurate documentation claims against governing sources rather than preserving known errors. Protected areas and unrelated changes stay intact. For `sharpen-dedupe`, proposing a shared owner does not authorize creating one: consolidation requires an implementation request.
 
-`sharpen-assess` reports `change_risk`, `execution_advice`, `verification`, and `reassessment_triggers`. Unknown exposure calls for more evidence, not an automatic increase in model capability. A concrete model mapping needs a supplied or verified catalog; the skill does not pin vendor model names.
+`sharpen-assess` separates `change_risk`, `execution_advice`, `verification`, and material `reassessment_triggers`. Unknown exposure calls for more evidence, not an automatic increase in model capability. High stakes alone do not justify `exhaustive`: deeper exploration needs a specific reasoning problem that could change the decision. Small tasks can receive a few sentences instead of four report sections. Provider mapping is optional, only when requested and supported by a supplied or verified catalog; the skill does not pin vendor model names.
+
+`sharpen-dedupe` separates observed semantics from required behavior and ownership. `divergent` records a demonstrated difference without asserting intent; `partial` identifies a proven reusable portion while preserving the rest. Unresolved intent leads to `defer`, established conflicting requirements to `reconcile`, and justified separation to `keep`. `reference` covers caller or entry-point migration followed by covered copy removal; `dedupe` removes a redundant copy when no such migration is needed. An observed difference does not authorize fixing it.
 
 The original JSON evaluation cases require `decision`, `findings`, `evidence`, `limitations`, and `changes` with their existing types, and allow extra fields. This format applies to those cases, not every skill response.
 
@@ -37,6 +43,8 @@ Use a separate context that excludes the author's verdict and persuasive rationa
 | `code` | Is the code change correct? | Declared contracts, relevant baselines, callers, and validation within permitted paths |
 
 An explicit mode wins. Otherwise, choose `code` for code correctness and `comprehension` for a document cold read. Ask only when mixed purposes need different evidence and the request leaves that choice open. Report `not_run` if context isolation is unavailable.
+
+The neutral handoff identifies the artifact and workspace, mode and audience, review question, permitted evidence, code baseline/contracts when available, and actual isolation provenance. A handoff's assertion does not itself prove isolation. The example in [sharpen-cold-review](../skills/sharpen-cold-review/SKILL.md) needs no new file or provider-specific configuration. Long comprehension reports may group repetition, but retain the literal actions and signal meanings needed for the reader's task.
 
 ## Distribution and maintenance
 

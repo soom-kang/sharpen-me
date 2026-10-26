@@ -1,6 +1,6 @@
 interface:
   display_name: "Sharpen Challenge"
-  short_description: "Check the assumption a plan rests on"
-  default_prompt: "Use $sharpen-challenge to examine consequential assumptions and the smallest observation that would settle them."
+  short_description: "Test whether a plan's assumptions support its goal"
+  default_prompt: "Use $sharpen-challenge to examine the assumptions that could change this decision, preserve independent blockers, and identify the smallest missing evidence."
 policy:
   allow_implicit_invocation: true
