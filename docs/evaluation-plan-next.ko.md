@@ -56,8 +56,11 @@ node scripts/evaluate-focused.mjs --plan evals/focused-next.mjs --continue
 
 ## 실행 전 준비
 
-2026-10-31 점검 결과, 다음이 준비되지 않았습니다.
+2026-10-31에 모델 호출 없이 다음을 확인했습니다.
 
-- **Node 24.20.0:** runner는 정확히 이 버전만 허용합니다. 현재 셸은 24.22.2입니다.
-- **Docker 이미지:** daemon은 실행 중이지만 `node:24.20.0-bookworm-slim` 이미지가 없습니다. `docker pull` 후 `npm run test:docker`로 격리 검사를 확인해야 합니다.
-- **CLI 버전 변경:** Codex `0.166.0`, Claude Code `2.1.316`으로 beta.7 때(`0.164.0`, `2.1.310`)와 다릅니다. beta.7에서 쓴 격리 방식(Codex 임시 HOME, Claude 읽기 제한)이 이 버전에서도 전역 지침과 개인 스킬을 제외하는지 모델 호출 없이 다시 확인해야 합니다.
+- **Node 24.20.0:** nodejs.org 공식 `darwin-arm64` 배포본을 임시 디렉터리에 풀고 `SHASUMS256.txt`와 대조했습니다(전역 설치 없음). 이 버전으로 `npm run verify`(테스트 105개)와 dry run(40회, 유료 0회)이 통과했습니다.
+- **Docker:** `node:24.20.0-bookworm-slim`을 받았고 digest `sha256:ba849c60…a71e`가 beta.7 실행 기록과 같습니다. `npm run test:docker` 격리 검사는 PASS입니다.
+- **Codex `0.166.0`:** runner와 같은 임시 HOME·`CODEX_HOME`으로 `codex debug prompt-input`을 렌더링했습니다. 스킬 arm에는 fixture의 sharpen 스킬 8개만 보였고, 대조군 arm에는 sharpen 스킬이 없었습니다. 두 arm 모두 전역 `AGENTS.md` 표지와 `~/.agents/skills`의 개인 스킬이 0건이었습니다. 같은 명령을 실제 HOME으로 실행하면 둘 다 나타나므로 확인 방법은 유효합니다.
+- **Claude Code `2.1.316`:** runner와 같은 `sandbox-exec` 프로필에서 `~/.claude/skills`, `~/.claude/projects`, `~/.agents/skills`의 읽기가 거부됐고, CLI 실행과 일반 경로 읽기는 가능했습니다.
+
+남은 한계도 있습니다. `~/.claude/plugins`의 plugin 스킬은 읽기 제한 목록에 없고, `--setting-sources project`로 사용자 범위 plugin이 꺼진다는 점에 의존합니다. Claude가 실제로 어떤 스킬 목록을 받는지는 모델 호출 없이 확인하지 못했으므로, pilot 결과에서 대조군 응답과 스킬 접근 기록을 먼저 확인합니다.
