@@ -1,6 +1,6 @@
 # Evaluation results and limits
 
-**Beta.7's bounded evaluation recorded 21 PASS and 11 UNCLEAR; the full evaluation gate remains unmet.** The historical beta.2 focused pass concerns different sources. Installation and local checks do not measure model behavior.
+**Beta.9's revised skills have no completed model evaluation. Beta.7's bounded evaluation recorded 21 PASS and 11 UNCLEAR for earlier instructions; the full evaluation gate remains unmet.** The historical beta.2 focused pass concerns different sources. Installation and local checks do not measure model behavior.
 
 ## Beta.7 focused evaluation (2026-10-26)
 
@@ -22,7 +22,9 @@ Eight earlier diagnostic calls were excluded for global-instruction contaminatio
 
 The authoring agent reviewed responses, execution evidence and edits; this was not an independent blind review. Grades bind to evidence hashes. A single version and repetition cannot establish improvement, repeatability, provider superiority, or a general success rate. See the [case-by-case report (Korean)](evaluation-beta7-2026-10-26.ko.md), [plan](../evals/focused-beta7.mjs), and [bounded execution procedure](maintenance.md#bounded-beta7-evaluation). Local `eval-results/focused-beta7-native-2026-10-26/` retains the frozen sources and evidence. The historical archives and full 576-call gate are unchanged.
 
-## Unreleased evaluator changes
+## Beta.9 skill and evaluator revisions (2026-10-31)
+
+All eight skill descriptions gained English and Korean trigger vocabulary. Dedupe now excludes installed agent instructions from searches, and challenge states conclusions resting on an unverified external contract conditionally; these address the two manually identified beta.7 defects (D5 and R2). Every skill ends with a completion check and may end with one `Next: <skill> — <question>` handoff line, and review has default `blocker`/`major`/`minor`/`question` severities. These revisions ship in v0.9.0-beta.9 without a completed model evaluation.
 
 Codex command observation now ignores exclusion globs, records listings as discovery, and attributes Skill paths from the output of searches that name no Skill path. A manual FAIL now surfaces through a structural UNCLEAR; it never overrides structural FAIL or NOT_RUN. Regression tests cover both. Beta.7 records keep no raw provider stream, so they cannot be re-observed; do not summarize or continue that archive with the modified scripts. The next bounded evaluation [plan (Korean)](evaluation-plan-next.ko.md) was approved on 2026-10-31 for 40 calls, including a 16-call no-skill control arm, under a US$10 management budget. The focused runner now accepts `--plan` and records control slots as version `control`. The pilot stopped after two of four calls (US$0.1462452): the runner's conservative US$0.40-per-remaining-call projection exceeded the budget, a planning error. The evaluation was halted there without grading; its archive is preserved, and a restart needs a new budget, call cap and archive.
 
@@ -49,6 +51,8 @@ Local wording-pass validation recorded on 2026-10-26:
 The default Playwright browser cache was unavailable, and a sandboxed Chrome launch failed. Rendering then completed with the installed Chrome in a temporary profile through approved execution, without downloading a browser or using the user's profile.
 
 ## Published release evidence
+
+Beta.9 ships the [skill and evaluator revisions](#beta9-skill-and-evaluator-revisions-2026-10-31). All eight `SKILL.md` files differ from beta.8; `agents/openai.yaml` and `LICENSE` files are unchanged. The halted pilot provides no graded result, so publishing beta.9 establishes no model behavior or evaluation gate. The [beta.9 release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.9) identify the exact release commit and its CI and tag-installation checks.
 
 Beta.8 packages the bounded beta.7 case plan, runner, and report. All 24 shipping skill files remain byte-for-byte identical to beta.7, and the evaluation plan retains its original beta.7 tag and commit. Publishing beta.8 does not resolve the recorded defects or unmet gates. The [beta.8 release notes](https://github.com/soom-kang/sharpen-me/releases/tag/v0.9.0-beta.8) identify the exact release commit and its CI and tag-installation checks.
 
