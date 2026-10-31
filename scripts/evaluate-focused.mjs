@@ -12,7 +12,7 @@ import { sourceSnapshot, sha256 } from './eval-resume.mjs';
 import { sanitize, sanitizeObservation, parseEvents } from './eval-observation.mjs';
 import { providerCommand, taskPrompt, observeV3 } from './eval-v3-observation.mjs';
 import { idOf, seal, validateRecords, stoppingReasons } from './eval-v3-contract.mjs';
-import { blindPacket, blindId, structuralStatus } from './eval-v3-summary.mjs';
+import { blindPacket, blindId, structuralStatus, combinedStatus } from './eval-v3-summary.mjs';
 import { createProviderDispatch, readChangedFiles, versions } from './eval-v3.mjs';
 import { dockerPreflight, dockerCheck } from './eval-docker.mjs';
 
@@ -101,7 +101,7 @@ async function writeSummary(metadata, records, halt) {
     const r = indexed.get(idOf(item)), structural = structuralStatus(r, item.testCase);
     const grade = r && gradeMap.get(blindId(r));
     return { id: idOf(item), case: item.testCase.id, provider: item.provider, skill: item.testCase.skill, category: item.testCase.category,
-      structural, semantic: grade?.semantic ?? 'UNCLEAR', status: structural === 'REVIEW_REQUIRED' ? grade?.semantic ?? 'UNCLEAR' : structural,
+      structural, semantic: grade?.semantic ?? 'UNCLEAR', status: combinedStatus(structural, grade?.semantic),
       reason: r?.reason ?? null, called: r?.providerCalled ?? false, modelEvidence: r?.modelEvidence ?? 'NOT_RUN' };
   });
   const counts = { PASS: 0, FAIL: 0, UNCLEAR: 0, NOT_RUN: 0 };

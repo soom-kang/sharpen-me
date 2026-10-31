@@ -4,7 +4,7 @@ import { cases } from '../evals/additional-cases.mjs';
 import { readFile } from 'node:fs/promises';
 import { matrixFor, idOf, assertV3, assertSame, seal, validateRecords, dispatchMatrix, parseArgs, selectedProviders } from '../scripts/eval-v3-contract.mjs';
 import { observeV3, taskPrompt, providerCommand, modelEvidence } from '../scripts/eval-v3-observation.mjs';
-import { blindPacket, summarize, blindId, structuralStatus } from '../scripts/eval-v3-summary.mjs';
+import { blindPacket, summarize, blindId, structuralStatus, combinedStatus } from '../scripts/eval-v3-summary.mjs';
 import { containerCommand, dockerCheck, dockerPreflight } from '../scripts/eval-docker.mjs';
 import { sha256 } from '../scripts/eval-resume.mjs';
 const config = JSON.parse(await readFile(new URL('../evals/config.json', import.meta.url)));
@@ -341,4 +341,34 @@ test('Grep content inspection remains access in every output mode while Glob dis
   assert.equal(select('claude',[genericGlob]).selection,'FAIL');
   assert.equal(select('claude',[{...genericGlob,missing:true}]).selection,'UNCLEAR');
   assert.equal(select('claude',[{tool:'Glob',input:{pattern:knownPath},text:selectionSources['sharpen-review']}],['sharpen-review']).selection,'UNCLEAR');
+});
+
+test('Codex exclusion globs are not access, listings are discovery, and broad searches are attributed from output',()=>{
+  const full={text:selectionSources['sharpen-clarify']};
+  for(const command of [`rg --files -g '!**/SKILL.md'`,'rg -n add --glob=!**/SKILL.md src','grep -rn add --exclude=SKILL.md .']) {
+    assert.deepEqual(select('codex',[{command,text:'src/a.mjs'}]).skillAccessEvidence,[]);
+    assert.equal(select('codex',[full,{command,text:'src/a.mjs'}],['sharpen-clarify']).selection,'PASS');
+  }
+  for(const command of ['rg --files','find .agents/skills -name SKILL.md','ls .agents/skills/sharpen-review/SKILL.md']) {
+    const listing={command,text:'.agents/skills/sharpen-review/SKILL.md\nsrc/a.mjs'};
+    const observed=select('codex',[full,listing],['sharpen-clarify']);
+    assert.equal(observed.selection,'PASS');
+    assert.deepEqual(observed.skillAccessEvidence.slice(1).map(e=>[e.skill,e.kind,e.completion]),[['sharpen-review','discovery','success']]);
+    assert.equal(select('codex',[listing]).selection,'FAIL');
+  }
+  const broad={command:'rg --hidden -n add .',text:'.agents/skills/sharpen-review/SKILL.md:3:First review line.\nsrc/a.mjs:1:add'};
+  const observed=select('codex',[full,broad],['sharpen-clarify']);
+  assert.equal(observed.selection,'FAIL');
+  assert.deepEqual(observed.skillAccessEvidence.slice(1).map(e=>[e.skill,e.kind,e.fullSourceObserved]),[['sharpen-review','content',false]]);
+  assert.equal(select('codex',[full,{command:'rg -n add src',text:'src/a.mjs:1:add'}],['sharpen-clarify']).selection,'PASS');
+});
+
+test('a manual FAIL surfaces through incomplete structural evidence but never overrides structural results',()=>{
+  assert.equal(combinedStatus('UNCLEAR','FAIL'),'FAIL');
+  assert.equal(combinedStatus('UNCLEAR','PASS'),'UNCLEAR');
+  assert.equal(combinedStatus('UNCLEAR',undefined),'UNCLEAR');
+  assert.equal(combinedStatus('FAIL','PASS'),'FAIL');
+  assert.equal(combinedStatus('NOT_RUN','FAIL'),'NOT_RUN');
+  assert.equal(combinedStatus('REVIEW_REQUIRED',undefined),'UNCLEAR');
+  assert.equal(combinedStatus('REVIEW_REQUIRED','PASS'),'PASS');
 });

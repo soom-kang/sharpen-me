@@ -22,6 +22,10 @@ Eight earlier diagnostic calls were excluded for global-instruction contaminatio
 
 The authoring agent reviewed responses, execution evidence and edits; this was not an independent blind review. Grades bind to evidence hashes. A single version and repetition cannot establish improvement, repeatability, provider superiority, or a general success rate. See the [case-by-case report (Korean)](evaluation-beta7-2026-10-26.ko.md), [plan](../evals/focused-beta7.mjs), and [bounded execution procedure](maintenance.md#bounded-beta7-evaluation). Local `eval-results/focused-beta7-native-2026-10-26/` retains the frozen sources and evidence. The historical archives and full 576-call gate are unchanged.
 
+## Unreleased evaluator changes
+
+Codex command observation now ignores exclusion globs, records listings as discovery, and attributes Skill paths from the output of searches that name no Skill path. A manual FAIL now surfaces through a structural UNCLEAR; it never overrides structural FAIL or NOT_RUN. Regression tests cover both. Beta.7 records keep no raw provider stream, so they cannot be re-observed; do not summarize or continue that archive with the modified scripts. The next bounded evaluation is an [unapproved plan (Korean)](evaluation-plan-next.ko.md); no provider call has run.
+
 ## Beta.7 skill revisions (2026-10-26)
 
 All eight skill instructions and their Codex descriptions/prompts were revised to clarify selection and stopping. Assess now ties deeper reasoning to a specific unresolved problem rather than stakes alone. Dedupe separates observed differences from intent and distinguishes caller migration from redundant-copy removal. [Design](design.md) and the paired [English](usage.md) / [Korean](usage.ko.md) guides describe the boundaries and examples.

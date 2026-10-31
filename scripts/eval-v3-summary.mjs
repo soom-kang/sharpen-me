@@ -20,6 +20,10 @@ export function blindPacket(records, cases) {
       grade: { semantic: 'UNCLEAR', rationale: '', missingFacts: [], unsupportedClaims: [], scopeViolations: [] } };
   }).sort((a,b) => a.blindId.localeCompare(b.blindId));
 }
+// A semantic grade decides only structurally clean observations, but a manual
+// FAIL must stay visible when structural evidence is merely incomplete.
+export const combinedStatus = (structural, semantic) => structural === 'REVIEW_REQUIRED' ? semantic ?? 'UNCLEAR'
+  : structural === 'UNCLEAR' && semantic === 'FAIL' ? 'FAIL' : structural;
 export function structuralStatus(record, testCase) {
   if (!record || !record.providerCalled) return 'NOT_RUN';
   if (record.status === 'NOT_RUN' || record.status === 'FAIL') return record.status;
@@ -66,7 +70,7 @@ export function summarize(metadata, records, cases, grades) {
     const record = indexed.get(idOf(item));
     const grade = record && gradeMap.get(blindId(record));
     const structural = structuralStatus(record, item.testCase);
-    const status = structural === 'REVIEW_REQUIRED' ? grade?.semantic ?? 'UNCLEAR' : structural;
+    const status = combinedStatus(structural, grade?.semantic);
     counts[status]++;
     rows.push({ skill: item.testCase.skill, provider: item.provider, version: item.version, repeat: item.repeat,
       category: item.testCase.category, status, selection: !record?.providerCalled || record.status === 'NOT_RUN' || item.testCase.invocation !== 'implicit'
