@@ -19,11 +19,11 @@ A review or challenge can find no defect. All eight skills allow automatic selec
 
 Choose by the question, not the file type or file count. A design can need either a contract review or an assumption challenge. An internal helper extraction with settled ownership fits refine; deciding equivalence and a shared owner fits dedupe. A routine status answer or grammar-only edit does not require this suite's repository workflow.
 
-Neighboring skill names explain selection boundaries; they are not installation dependencies or an automatic execution chain. Use the procedure needed for the user's request, and hand back to the caller once it is complete. A clarification-only request ends after interpretation; a resolved clarification inside an authorized implementation request does not require another approval.
+Neighboring skill names explain selection boundaries; they are not installation dependencies or an automatic execution chain. When a remaining question belongs to another skill, the response may end with one `Next: <skill> — <question>` line; naming it neither runs that skill nor grants its permissions. Each skill ends with a short completion check the agent applies before stopping. Use the procedure needed for the user's request, and hand back to the caller once it is complete. A clarification-only request ends after interpretation; a resolved clarification inside an authorized implementation request does not require another approval.
 
 ## Output and authorization
 
-You control which files may change, the model settings, and the response format. Selecting a skill grants no extra permission. The default response is concise prose; a format you request takes precedence.
+You control which files may change, the model settings, and the response format. Selecting a skill grants no extra permission. The default response is concise prose; a format you request takes precedence. Without your severity scale, `sharpen-review` labels findings `blocker`, `major`, `minor`, or `question`.
 
 `sharpen-refine` can edit code blocks, tables, or authored text when your request authorizes those edits. It preserves code behavior and the author's requirements, decisions, and uncertainty; it corrects inaccurate documentation claims against governing sources rather than preserving known errors. Protected areas and unrelated changes stay intact. For `sharpen-dedupe`, proposing a shared owner does not authorize creating one: consolidation requires an implementation request.
 

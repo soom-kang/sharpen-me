@@ -90,6 +90,8 @@ Older contracts remain unchanged and are rejected before execution or rewriting.
 
 ## Bounded beta.7 evaluation
 
+The runner defaults to the beta.7 plan. Pass `--plan evals/focused-next.mjs` before the mode for the [next bounded plan (Korean)](evaluation-plan-next.ko.md); its control slots run the same prompt without installed skills.
+
 The [2026-10-26 plan](../evals/focused-beta7.mjs) is a separate, single-version evaluation: 16 cases, two providers, one observation per case/provider. Its [runner](../scripts/evaluate-focused.mjs) reuses the existing dispatch journal, observation, evidence, and Docker helpers. It does not replace the 576-call comparison or change its archives.
 
 The agreed limit is 32 new CLI task invocations, plus eight excluded diagnostic invocations, for 40 cumulative calls. The US$15 management budget uses recorded token usage and a conservative remaining-call projection. It is not a hard billing cap or a subscription invoice. No automatic retry, fallback, or paid grader is enabled.

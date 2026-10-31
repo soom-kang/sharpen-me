@@ -1,7 +1,7 @@
 ---
 name: sharpen-assess
 license: MIT
-description: Recommend model capability, reasoning effort, and verification for a bounded task, assessing change risk separately. Use for execution budgeting or risk-and-effort assessment; unresolved request meaning belongs to sharpen-clarify and a plan's unproven mechanism to sharpen-challenge. Advise without changing settings or executing the task.
+description: "Recommend model capability, reasoning effort, and verification for a bounded task, assessing change risk separately. Use when asked which model or effort level fits a task, how risky a change is, or how much verification it needs (모델 선택, effort, 위험도, 검증 수준). Advise without changing settings or executing the task. Unresolved request meaning belongs to sharpen-clarify and a plan's unproven mechanism to sharpen-challenge."
 ---
 
 # Sharpen Assess
@@ -51,6 +51,8 @@ Honor the caller's schema, including its enums. Without one, give a concise deci
 - `reassessment_triggers`: per dial, the evidence that would raise it and the evidence that would lower it.
 
 For a small task, a recommendation, its exposure and reasoning rationale, and the necessary checks may fit in a few sentences; these are content requirements, not mandatory headings. When information is insufficient, qualify the affected assessment and identify the missing input rather than expanding into a new requirements or architecture exercise. Stop after giving actionable advice or identifying what prevents it; do not execute the task, launch a model, change configuration, or claim verification that has not run.
+
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
 
 ## Examples
 

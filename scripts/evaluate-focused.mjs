@@ -1,10 +1,10 @@
-// Bounded beta.7 run; the historical 576-call runner and archives stay unchanged.
+// Bounded single-version runs from a plan file (beta.7 by default); the
+// historical 576-call runner and archives stay unchanged.
 import { mkdir, mkdtemp, writeFile, readFile, cp, rm, readdir, realpath, rename, chmod, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import os from 'node:os';
 import assert from 'node:assert/strict';
-import { fileURLToPath } from 'node:url';
-import { plan, cases } from '../evals/focused-beta7.mjs';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { catalog } from './catalog.mjs';
 import { root } from './verify.mjs';
 import { run } from './process.mjs';
@@ -12,15 +12,27 @@ import { sourceSnapshot, sha256 } from './eval-resume.mjs';
 import { sanitize, sanitizeObservation, parseEvents } from './eval-observation.mjs';
 import { providerCommand, taskPrompt, observeV3 } from './eval-v3-observation.mjs';
 import { idOf, seal, validateRecords, stoppingReasons } from './eval-v3-contract.mjs';
-import { blindPacket, blindId, structuralStatus } from './eval-v3-summary.mjs';
+import { blindPacket, blindId, structuralStatus, combinedStatus } from './eval-v3-summary.mjs';
 import { createProviderDispatch, readChangedFiles, versions } from './eval-v3.mjs';
 import { dockerPreflight, dockerCheck } from './eval-docker.mjs';
 
-const directory = path.join(root, 'eval-results', plan.id);
-const frozen = path.join(directory, 'frozen');
-const matrix = cases.flatMap(testCase => ['codex', 'claude'].map(provider => ({ provider, version: 'after', repeat: 1, testCase })));
+let plan, cases, directory, frozen, matrix, config;
+// A control item runs the same prompt without installed skills, so any
+// observed Skill access is unexpected and the semantic grade decides the rest.
+export function focusedMatrix(plan, cases) {
+  const control = new Set(plan.control ?? []);
+  return cases.flatMap(testCase => ['after', ...(control.has(testCase.id) ? ['control'] : [])].flatMap(version =>
+    ['codex', 'claude'].map(provider => ({ provider, version, repeat: 1,
+      testCase: version === 'control' ? { ...testCase, invocation: 'implicit', expectedSkills: [] } : testCase }))));
+}
+async function configure(planFile) {
+  ({ plan, cases } = await import(pathToFileURL(path.resolve(root, planFile)).href));
+  directory = path.join(root, 'eval-results', plan.id);
+  frozen = path.join(directory, 'frozen');
+  matrix = focusedMatrix(plan, cases);
+  config = { providers: plan.providers, timeoutMs: plan.timeoutMs };
+}
 const json = async file => JSON.parse(await readFile(file, 'utf8'));
-const config = { providers: plan.providers, timeoutMs: plan.timeoutMs };
 // Claude's tools run under a host read restriction. Codex keeps its own native
 // sandbox and receives a disposable child HOME/configuration directory instead:
 // nesting macOS sandbox-exec prevents Codex from creating its command sandbox.
@@ -36,17 +48,19 @@ async function save(file, value) {
   await rename(`${file}.tmp`, file);
 }
 function validatePlan() {
-  assert.equal(cases.length, 16); assert.equal(matrix.length, plan.maxCalls); assert.equal(plan.maxCalls, 32);
-  assert.equal(new Set(matrix.map(idOf)).size, 32);
-  assert.equal(cases.filter(c => c.invocation === 'implicit').length, 6);
+  assert.equal(matrix.length, plan.maxCalls); assert.equal(new Set(matrix.map(idOf)).size, matrix.length);
+  assert(cases.every(Boolean) && new Set(cases.map(c => c.id)).size === cases.length, 'Missing or duplicate case');
+  assert((plan.control ?? []).every(id => cases.some(c => c.id === id)), 'Unknown control case');
+  // Paired dispatch runs one call per provider at a time.
+  assert(plan.pilotCalls > 0 && plan.pilotCalls % 2 === 0 && plan.pilotCalls <= plan.maxCalls);
   for (const c of cases) {
     for (const file of [...Object.keys(c.files), ...c.mutablePaths]) {
       assert(!path.isAbsolute(file) && !file.split('/').includes('..'), 'Fixture path escapes scope');
     }
     assert(c.expected.must.length > 0);
-    if (c.invocation === 'implicit') {
-      assert.doesNotMatch(taskPrompt('codex', c), /sharpen-(assess|dedupe|clarify|challenge|refine|review|brief|cold-review)|expectedSkills|mustNot|\.agents|\.claude/);
-    }
+  }
+  for (const { testCase } of matrix.filter(m => m.testCase.invocation === 'implicit')) {
+    assert.doesNotMatch(taskPrompt('codex', testCase), /sharpen-(assess|dedupe|clarify|challenge|refine|review|brief|cold-review)|expectedSkills|mustNot|\.agents|\.claude/);
   }
 }
 function estimate(record) {
@@ -73,7 +87,7 @@ function costs(records) {
       const input = (u.input_tokens ?? 0) + (provider === 'claude' ? (u.cache_read_input_tokens ?? 0) + (u.cache_creation_input_tokens ?? 0) : 0);
       return (input * p.cacheWrite + (u.output_tokens ?? 0) * p.output) / 1e6;
     }));
-    remainingProjectionUsd += (16 - lane.length) * high;
+    remainingProjectionUsd += (matrix.filter(m => m.provider === provider).length - lane.length) * high;
   }
   return { apiEquivalentUsd, priorDiagnosticUsd: plan.priorDiagnostic.apiEquivalentUsd,
     cumulativeApiEquivalentUsd: apiEquivalentUsd + plan.priorDiagnostic.apiEquivalentUsd,
@@ -100,24 +114,33 @@ async function writeSummary(metadata, records, halt) {
   const rows = matrix.map(item => {
     const r = indexed.get(idOf(item)), structural = structuralStatus(r, item.testCase);
     const grade = r && gradeMap.get(blindId(r));
-    return { id: idOf(item), case: item.testCase.id, provider: item.provider, skill: item.testCase.skill, category: item.testCase.category,
-      structural, semantic: grade?.semantic ?? 'UNCLEAR', status: structural === 'REVIEW_REQUIRED' ? grade?.semantic ?? 'UNCLEAR' : structural,
+    return { id: idOf(item), case: item.testCase.id, provider: item.provider, arm: item.version, skill: item.testCase.skill, category: item.testCase.category,
+      structural, semantic: grade?.semantic ?? 'UNCLEAR', status: combinedStatus(structural, grade?.semantic),
       reason: r?.reason ?? null, called: r?.providerCalled ?? false, modelEvidence: r?.modelEvidence ?? 'NOT_RUN' };
   });
-  const counts = { PASS: 0, FAIL: 0, UNCLEAR: 0, NOT_RUN: 0 };
-  for (const row of rows) counts[row.status]++;
-  const summary = { planId: plan.id, commit: plan.commit, plannedCalls: 32, attemptedCalls: records.filter(r => r.providerCalled).length,
-    halt, counts, costs: costs(records), focusedPassed: counts.PASS === 32, releaseReady: false,
-    limitation: 'One beta.7 observation per case/provider. No before/after claim, repeatability estimate, or full-gate release readiness.', rows };
+  const count = selected => selected.reduce((out, row) => { out[row.status]++; return out; }, { PASS: 0, FAIL: 0, UNCLEAR: 0, NOT_RUN: 0 });
+  const skillRows = rows.filter(row => row.arm === 'after'), controlRows = rows.filter(row => row.arm === 'control');
+  const counts = count(skillRows);
+  const summary = { planId: plan.id, commit: plan.commit, plannedCalls: matrix.length, attemptedCalls: records.filter(r => r.providerCalled).length,
+    halt, counts, costs: costs(records), focusedPassed: counts.PASS === skillRows.length, releaseReady: false,
+    ...(controlRows.length ? { controlCounts: count(controlRows), comparison: controlRows.map(control => ({ case: control.case, provider: control.provider,
+      skills: skillRows.find(row => row.case === control.case && row.provider === control.provider).status, control: control.status })) } : {}),
+    limitation: controlRows.length
+      ? 'One observation per case/provider/arm. A skills-versus-control difference here is descriptive, not an effect size, repeatability estimate, or release readiness.'
+      : 'One beta.7 observation per case/provider. No before/after claim, repeatability estimate, or full-gate release readiness.', rows };
   await save(path.join(directory, 'summary.json'), summary);
   console.log(JSON.stringify({ directory, ...summary, rows: undefined }));
 }
 export async function main(args = process.argv.slice(2)) {
-  assert.equal(args.length, 1, 'Use --dry-run, --pilot, --continue, or --summarize');
-  const mode = args[0]; assert(['--dry-run', '--pilot', '--continue', '--summarize'].includes(mode));
+  const usage = 'Use [--plan <file>] --dry-run, --pilot, --continue, or --summarize';
+  let planFile = 'evals/focused-beta7.mjs';
+  if (args[0] === '--plan') { assert(args[1] && !args[1].startsWith('--'), usage); planFile = args[1]; args = args.slice(2); }
+  assert.equal(args.length, 1, usage);
+  const mode = args[0]; assert(['--dry-run', '--pilot', '--continue', '--summarize'].includes(mode), usage);
+  await configure(planFile);
   validatePlan();
   if (mode === '--dry-run') {
-    console.log(JSON.stringify({ plan, calls: matrix.map(item => ({ id: idOf(item), provider: item.provider, case: item.testCase.id })),
+    console.log(JSON.stringify({ plan, calls: matrix.map(item => ({ id: idOf(item), provider: item.provider, arm: item.version, case: item.testCase.id })),
       plannedCalls: matrix.length, priorDiagnosticCalls: plan.priorDiagnostic.attemptedCalls,
       maximumCumulativeCalls: plan.priorDiagnostic.attemptedCalls + matrix.length, paidCalls: 0 }, null, 2));
     return;
@@ -130,8 +153,9 @@ export async function main(args = process.argv.slice(2)) {
   try {
     if (mode === '--pilot') {
       await mkdir(path.join(directory, 'records'));
-      const tag = await run(['git', 'rev-parse', `${plan.tag}^{}`], { cwd: root });
-      assert.equal(tag.code, 0); assert.equal(tag.stdout.trim(), plan.commit);
+      // A plan without a release tag pins its skill source by full commit.
+      const source = await run(['git', 'rev-parse', '--verify', `${plan.tag ?? plan.commit}^{commit}`], { cwd: root });
+      assert.equal(source.code, 0); assert.equal(source.stdout.trim(), plan.commit);
       await mkdir(path.join(frozen, 'after', 'skills'), { recursive: true });
       for (const { name } of catalog) for (const file of ['SKILL.md', 'agents/openai.yaml', 'LICENSE']) {
         const result = await run(['git', 'show', `${plan.commit}:skills/${name}/${file}`], { cwd: root });
@@ -176,8 +200,8 @@ export async function main(args = process.argv.slice(2)) {
     };
     await assertInputs();
     if (mode === '--summarize' || halt) { await writeSummary(metadata, records, halt); return; }
-    if (mode === '--continue') assert.equal(dispatch.length, 4, 'Continue only after the four-call pilot');
-    const pilotBound = mode === '--pilot' ? 4 : 32;
+    if (mode === '--continue') assert.equal(dispatch.length, plan.pilotCalls, 'Continue only after the pilot');
+    const pilotBound = mode === '--pilot' ? plan.pilotCalls : plan.maxCalls;
     const dispatchProvider = createProviderDispatch(dispatch, plan.maxCalls, value => save(path.join(directory, 'dispatch.json'), value));
     for (let offset = dispatch.length; offset < pilotBound; offset += 2) {
       const budget = costs(records);
@@ -186,7 +210,7 @@ export async function main(args = process.argv.slice(2)) {
       }
       const pair = matrix.slice(offset, offset + 2);
       await Promise.all(pair.map(async item => {
-        const { provider, testCase } = item;
+        const { provider, version, testCase } = item;
         const cwd = await realpath(await mkdtemp(path.join(os.tmpdir(), 'sharpen-focused-fixture-')));
         await chmod(cwd, 0o755);
         let sessionHome;
@@ -218,8 +242,11 @@ export async function main(args = process.argv.slice(2)) {
             const target = path.join(cwd, relative); await mkdir(path.dirname(target), { recursive: true }); await writeFile(target, contents);
           }
           const agent = provider === 'codex' ? '.agents' : '.claude';
-          await cp(path.join(frozen, 'after', 'skills'), path.join(cwd, agent, 'skills'), { recursive: true });
-          const sources = Object.fromEntries(await Promise.all(catalog.map(async ({ name }) => [name, await readFile(path.join(cwd, agent, 'skills', name, 'SKILL.md'), 'utf8')])));
+          let sources = {};
+          if (version !== 'control') {
+            await cp(path.join(frozen, 'after', 'skills'), path.join(cwd, agent, 'skills'), { recursive: true });
+            sources = Object.fromEntries(await Promise.all(catalog.map(async ({ name }) => [name, await readFile(path.join(cwd, agent, 'skills', name, 'SKILL.md'), 'utf8')])));
+          }
           observation.baselineChecks = await checks('before');
           assert(observation.baselineChecks.every(c => c.passed), 'Fixture baseline failed');
           const before = await sourceSnapshot(cwd);
@@ -254,7 +281,7 @@ export async function main(args = process.argv.slice(2)) {
           await rm(cwd, { recursive: true });
           if (sessionHome) await rm(sessionHome, { recursive: true });
         }
-        const record = seal({ schemaVersion: 3, id: idOf(item), provider, version: 'after', repeat: 1, case: testCase.id,
+        const record = seal({ schemaVersion: 3, id: idOf(item), provider, version, repeat: 1, case: testCase.id,
           inputHash: metadata.inputHash, ...sanitizeObservation(observation, cwd) });
         await save(path.join(directory, 'records', `${record.id}.json`), record); records.push(record);
         console.log(JSON.stringify({ id: record.id, called: record.providerCalled, status: record.status, reason: record.reason, usd: estimate(record) }));

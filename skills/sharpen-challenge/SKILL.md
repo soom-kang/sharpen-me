@@ -1,7 +1,7 @@
 ---
 name: sharpen-challenge
 license: MIT
-description: Test consequential assumptions about whether a proposed engineering approach can achieve its outcome, using evidence or a small distinguishing check. Use when the mechanism is uncertain; request meaning belongs to sharpen-clarify, execution budgeting to sharpen-assess, and concrete contract violations in a design or implementation to sharpen-review.
+description: "Test consequential assumptions about whether a proposed engineering approach can achieve its outcome, using evidence or a small distinguishing check. Use when asked whether a plan, design, or fix will actually work, to verify a premise, or to find the strongest objection (이 방식이 통할까, 전제 검증, 반론). Request meaning belongs to sharpen-clarify, execution budgeting to sharpen-assess, and concrete contract violations in a design or implementation to sharpen-review."
 ---
 
 # Sharpen Challenge
@@ -21,9 +21,9 @@ Required: the proposed approach and intended outcome. Optional: constraints, con
 5. If a decisive contract or existing evidence settles the issue, explain it without a ceremonial experiment. Otherwise, or when the caller requests a test, specify input, controlled action, observation, and the result that supports or rejects the assumption. Check that each proposed verdict follows from its stated observation, and that the test can distinguish the competing explanations.
 6. Execute only a useful check within existing authorization. Prefer a deterministic local counterexample or contract-consistent test double. Require external infrastructure only when local evidence cannot answer the question.
 
-## Judgment rules
+## Rules
 
-A result compatible with several mechanisms establishes none of them. Distinguish observations, explanations, and predictions; name a control that would separate competing causes. Absence is provisional while earlier work can still complete or become visible. A proposed remedy needs its own coordination, recovery, and compatibility evidence. Do not redesign or implement the plan as an implied follow-up.
+A result compatible with several mechanisms establishes none of them. When a conclusion depends on an external system's unverified contract or default, such as a provider's deduplication, retry, or ordering behavior, state it conditionally ("if the provider does X, then Y") and name the check that would settle it; familiar conventions do not establish that contract. Distinguish observations, explanations, and predictions; name a control that would separate competing causes. Absence is provisional while earlier work can still complete or become visible. A proposed remedy needs its own coordination, recovery, and compatibility evidence. Do not redesign or implement the plan as an implied follow-up.
 
 ## Output and stopping
 
@@ -31,8 +31,14 @@ Honor the caller's format. Otherwise give the consequential assumption, whether 
 
 Stop when the decision-relevant assumptions are resolved or their remaining evidence, budget, or authority gaps are explicit. Preserve independent blockers, but stop collecting evidence that cannot change the conclusion. State the limitation when no cheaper useful check exists. Do not change provider settings or deploy.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - A plan assumes an index removes a bottleneck: inspect a representative query plan before proposing a service rewrite.
 - Independent authorization and duplicate-charge failures: keep both; repairing one does not establish the other.
 - "Will this cache strategy reduce latency?" belongs here; "Does this implementation violate the agreed cache invalidation contract?" belongs to sharpen-review, even if both questions concern the same design.
+
+## Completion check
+
+Each consequential assumption is marked supported, refuted, or unresolved with its evidence; conclusions that rest on an unverified external contract are stated conditionally; independent blockers remain separate; and only executed checks are reported as results.

@@ -1,7 +1,7 @@
 ---
 name: sharpen-refine
 license: MIT
-description: Make authorized behavior-preserving code improvements or source-backed technical documentation corrections, including commands and tables. Use sharpen-dedupe when equivalence or shared ownership across implementations must be decided. Pure wording or grammar work belongs to a writing skill; exclude feature work, behavior-changing fixes, and unrelated cleanup.
+description: "Make authorized behavior-preserving code improvements or source-backed technical documentation corrections, including commands and tables. Use to refactor, clean up, simplify, or extract a helper without changing behavior, or to correct outdated commands, versions, or tables in technical docs (리팩터링, 코드 정리, 단순화, 기술 문서 수정). Use sharpen-dedupe when equivalence or shared ownership across implementations must be decided. Pure wording or grammar work belongs to a writing skill; exclude feature work, behavior-changing fixes, and unrelated cleanup."
 ---
 
 # Sharpen Refine
@@ -30,8 +30,14 @@ Use the caller's format. Otherwise report the actual improvement, why it meets t
 
 Stop after the requested improvement is verified, or after establishing that no change is useful. Stop only the dependent part when it requires a behavior change, excluded files, missing evidence, or separate approval; do not expand into neighboring cleanup. Describe partial edits accurately and preserve existing work. Do not create extra files unless the authorized improvement requires and permits them. Authorization does not imply commit, push, deployment, secrets, or production-setting changes. In read-only contexts return a proposal.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - Extract an internal helper while preserving error behavior and call order, then run existing module checks.
 - Correct a requested command and version table while preserving an explicitly protected paragraph byte-for-byte.
 - Compare parsers across services to decide a common owner with sharpen-dedupe. Use a writing skill for a grammar-only request without repository claims to reconcile.
+
+## Completion check
+
+The final diff preserves the established invariants and protected regions; executed checks are reported with their results; and no behavior change, unrelated cleanup, or unrequested file entered the change.

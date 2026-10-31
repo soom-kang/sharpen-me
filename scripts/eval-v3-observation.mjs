@@ -11,12 +11,27 @@ const skillPaths = value => {
   if (!paths.length && /(?:^|[\s'"])SKILL\.md(?=$|[\s'";|&])/.test(value)) skills.push('<unattributed-skill>');
   return [...new Set(skills)];
 };
-const commandReadSkills = command => {
-  // Recognize ordinary CLI file readers and their shell wrappers. Unrecognized
-  // commands mentioning a Skill path remain incomplete evidence, not no-use.
+// Exclusion globs name paths a search skips; they are not access.
+const exclusions = /\s(?:-g|--glob|--iglob)(?:\s+|=)(?:(['"])!.*?\1|!\S*)|\s--exclude(?:-dir)?=(?:(['"]).*?\2|\S*)/g;
+const program = part => part.match(/^(?:\s*['"])?\s*(?:\/(?:usr\/)?bin\/)?(cat|head|tail|sed|awk|grep|rg|more|less|wc|find|ls|fd)\s/)?.[1];
+const commandAccess = command => {
+  // Recognize ordinary CLI file readers, searches, listings and their shell
+  // wrappers. Unrecognized commands mentioning a Skill path remain incomplete
+  // evidence, not no-use.
   const script = (command ?? '').trim().replace(/^(?:\/(?:usr\/)?bin\/)?(?:ba|z)?sh\s+-[lc]+\s+(['"])([\s\S]*)\1$/, '$2');
-  return script.split(/[;|&]/).filter(part => /^(?:\s*['"])?\s*(?:\/(?:usr\/)?bin\/)?(?:cat|head|tail|sed|awk|grep|rg|more|less|wc)\s/.test(part))
-    .flatMap(skillPaths);
+  const parts = script.split(/[;|&]/).map(part => part.replace(exclusions, ' '));
+  const listing = part => ['find', 'ls', 'fd'].includes(program(part)) || (program(part) === 'rg' && /\s--files(?=\s|$)/.test(part));
+  const named = parts.filter(part => !listing(part)).flatMap(skillPaths);
+  return {
+    skills: [...new Set(named)],
+    readSkills: parts.filter(part => program(part) && !listing(part)).flatMap(skillPaths),
+    // A listing pattern such as `-name SKILL.md` is not a path; its output names the files.
+    listedSkills: parts.filter(listing).flatMap(skillPaths).filter(skill => skill !== '<unattributed-skill>'),
+    // A listing, or a search that names no Skill path, reveals the files it
+    // touched only through its output, e.g. `rg --hidden pattern .`.
+    outputKinds: [...new Set(parts.flatMap(part => listing(part) ? ['discovery']
+      : ['grep', 'rg'].includes(program(part)) && !skillPaths(part).length ? ['content'] : []))],
+  };
 };
 
 // Access and complete source loading are different evidence. Keep only the
@@ -28,16 +43,22 @@ export function skillAccessEvidence(provider, events, sources) {
     fullSourceObserved: kind === 'content' && allowFullSource && completed && success && typeof text === 'string' && Boolean(sourceObserved(text, sources[skill])) });
   for (const event of events) {
     if (provider === 'codex' && ['item.started','item.completed'].includes(event.type) && event.item?.type === 'command_execution') {
-      const item = event.item, skills = skillPaths(item.command);
+      const item = event.item, access = commandAccess(item.command), skills = access.skills;
       if (event.type === 'item.started') {
-        if (skills.length && item.id) pending.set(item.id, { skills, via: 'command', readSkills: commandReadSkills(item.command) });
+        if (skills.length && item.id) pending.set(item.id, { skills, via: 'command', access });
         else if (skills.length) for (const skill of skills) add(skill, 'command', false, false);
       } else {
         const started = pending.get(item.id);
         const hasCommand = typeof item.command === 'string' && item.command.trim();
         const accessed = hasCommand ? skills : started?.skills ?? ['<unattributed-skill>'];
-        const readSkills = hasCommand ? commandReadSkills(item.command) : started?.readSkills ?? [];
-        for (const skill of accessed) add(skill, 'command', readSkills.includes(skill) && Number.isInteger(item.exit_code), item.exit_code === 0, item.aggregated_output);
+        const { readSkills, listedSkills, outputKinds } = hasCommand ? access : started?.access ?? { readSkills: [], listedSkills: [], outputKinds: [] };
+        const finished = Number.isInteger(item.exit_code), succeeded = item.exit_code === 0;
+        for (const skill of accessed) add(skill, 'command', readSkills.includes(skill) && finished, succeeded, item.aggregated_output);
+        const listed = outputKinds.includes('discovery') ? skillPaths(item.aggregated_output) : [];
+        for (const skill of new Set([...listedSkills, ...listed])) add(skill, 'command', finished, succeeded, item.aggregated_output, 'discovery');
+        if (outputKinds.includes('content')) for (const skill of skillPaths(item.aggregated_output)) {
+          if (!accessed.includes(skill)) add(skill, 'command', finished, succeeded, item.aggregated_output, 'content', false);
+        }
         pending.delete(item.id);
       }
     }
