@@ -52,6 +52,8 @@ Honor the caller's schema, including its enums. Without one, give a concise deci
 
 For a small task, a recommendation, its exposure and reasoning rationale, and the necessary checks may fit in a few sentences; these are content requirements, not mandatory headings. When information is insufficient, qualify the affected assessment and identify the missing input rather than expanding into a new requirements or architecture exercise. Stop after giving actionable advice or identifying what prevents it; do not execute the task, launch a model, change configuration, or claim verification that has not run.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - Normal: a broad mechanical rename with reliable references and complete tests may need modest capability even though it touches many files. Explain the remaining compatibility exposure separately.

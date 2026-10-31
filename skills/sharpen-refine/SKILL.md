@@ -30,8 +30,14 @@ Use the caller's format. Otherwise report the actual improvement, why it meets t
 
 Stop after the requested improvement is verified, or after establishing that no change is useful. Stop only the dependent part when it requires a behavior change, excluded files, missing evidence, or separate approval; do not expand into neighboring cleanup. Describe partial edits accurately and preserve existing work. Do not create extra files unless the authorized improvement requires and permits them. Authorization does not imply commit, push, deployment, secrets, or production-setting changes. In read-only contexts return a proposal.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - Extract an internal helper while preserving error behavior and call order, then run existing module checks.
 - Correct a requested command and version table while preserving an explicitly protected paragraph byte-for-byte.
 - Compare parsers across services to decide a common owner with sharpen-dedupe. Use a writing skill for a grammar-only request without repository claims to reconcile.
+
+## Completion check
+
+The final diff preserves the established invariants and protected regions; executed checks are reported with their results; and no behavior change, unrelated cleanup, or unrequested file entered the change.

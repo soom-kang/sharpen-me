@@ -39,6 +39,8 @@ Honor the caller's format. Otherwise use a short table or a few paragraphs ident
 
 Stop after the bounded audit or verified authorized change; do not extend a local comparison into a repository-wide duplicate search. Stop dependent edits for missing evidence, conflicting requirements, or scope expansion. Do not imply universal equivalence from finite checks or alter public contracts, add production dependencies, commit, or deploy as incidental deduplication.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - Identical parsers owned by independent products stay separate when their dependency contract forbids sharing.
@@ -46,3 +48,7 @@ Stop after the bounded audit or verified authorized change; do not extend a loca
 - Two helpers differ on empty input and the intended behavior is undocumented: record the demonstrated difference and `defer` consolidation, rather than treating either implementation as the required one.
 - Moving callers to a shared parser and removing their local copies is `reference`; removing an unused copy with no caller migration is `dedupe`, after checking entry points.
 - Simplifying repetition inside a function with settled contracts and ownership belongs to sharpen-refine; the number of files alone does not decide the skill.
+
+## Completion check
+
+Each compared location has a semantic label and a separate action with evidence; unknown semantics or intent led to `defer` rather than a guessed merge; the search excluded installed agent instructions; and proposed edits are distinguished from actual edits.

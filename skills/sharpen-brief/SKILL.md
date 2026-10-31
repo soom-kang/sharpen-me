@@ -27,8 +27,14 @@ Follow the caller's format through the end of the response. If it requires a fin
 
 Stop once the reader can distinguish current outcomes, open blockers, required decisions, and material verification limits, or unavailable evidence prevents a reliable account. State missing sources instead of broadening indefinitely. Report decisions that remain; resolving them or testing a plan is a separate task, not an automatic follow-up. Do not edit, choose product policy, send messages, or create monitoring jobs.
 
+When a remaining question belongs to another skill, end with one line naming it and the question, for example `Next: sharpen-challenge — does the index remove the bottleneck?`, unless the caller's format excludes it. Naming the next skill does not run it or grant its permissions.
+
 ## Examples
 
 - Since revision B a help text changed, while an earlier recovery blocker is still open: report the change and retain that blocker.
 - Recent mtimes but no baseline: report current evidenced state without claiming changes occurred while the reader was away.
 - "Tell me whether the test just run passed" needs a direct status answer, not a historical briefing. A captured deployment success without current access is a dated observation, not verified live health.
+
+## Completion check
+
+Every changeable status claim names its source or observation date, open blockers that predate the baseline are retained, verification limits sit next to the claims they qualify, and no decision was resolved for the reader.
