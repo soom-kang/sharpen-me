@@ -24,7 +24,7 @@ The authoring agent reviewed responses, execution evidence and edits; this was n
 
 ## Unreleased evaluator changes
 
-Codex command observation now ignores exclusion globs, records listings as discovery, and attributes Skill paths from the output of searches that name no Skill path. A manual FAIL now surfaces through a structural UNCLEAR; it never overrides structural FAIL or NOT_RUN. Regression tests cover both. Beta.7 records keep no raw provider stream, so they cannot be re-observed; do not summarize or continue that archive with the modified scripts. The next bounded evaluation is an [unapproved plan (Korean)](evaluation-plan-next.ko.md); no provider call has run.
+Codex command observation now ignores exclusion globs, records listings as discovery, and attributes Skill paths from the output of searches that name no Skill path. A manual FAIL now surfaces through a structural UNCLEAR; it never overrides structural FAIL or NOT_RUN. Regression tests cover both. Beta.7 records keep no raw provider stream, so they cannot be re-observed; do not summarize or continue that archive with the modified scripts. The next bounded evaluation [plan (Korean)](evaluation-plan-next.ko.md) was approved on 2026-10-31 for 40 calls, including a 16-call no-skill control arm, under a US$10 management budget. The focused runner now accepts `--plan` and records control slots as version `control`. No provider call has run.
 
 ## Beta.7 skill revisions (2026-10-26)
 
