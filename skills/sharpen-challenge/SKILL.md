@@ -1,7 +1,7 @@
 ---
 name: sharpen-challenge
 license: MIT
-description: Test consequential assumptions about whether a proposed engineering approach can achieve its outcome, using evidence or a small distinguishing check. Use when the mechanism is uncertain; request meaning belongs to sharpen-clarify, execution budgeting to sharpen-assess, and concrete contract violations in a design or implementation to sharpen-review.
+description: "Test consequential assumptions about whether a proposed engineering approach can achieve its outcome, using evidence or a small distinguishing check. Use when asked whether a plan, design, or fix will actually work, to verify a premise, or to find the strongest objection (이 방식이 통할까, 전제 검증, 반론). Request meaning belongs to sharpen-clarify, execution budgeting to sharpen-assess, and concrete contract violations in a design or implementation to sharpen-review."
 ---
 
 # Sharpen Challenge
@@ -23,7 +23,7 @@ Required: the proposed approach and intended outcome. Optional: constraints, con
 
 ## Judgment rules
 
-A result compatible with several mechanisms establishes none of them. Distinguish observations, explanations, and predictions; name a control that would separate competing causes. Absence is provisional while earlier work can still complete or become visible. A proposed remedy needs its own coordination, recovery, and compatibility evidence. Do not redesign or implement the plan as an implied follow-up.
+A result compatible with several mechanisms establishes none of them. When a conclusion depends on an external system's unverified contract or default, such as a provider's deduplication, retry, or ordering behavior, state it conditionally ("if the provider does X, then Y") and name the check that would settle it; familiar conventions do not establish that contract. Distinguish observations, explanations, and predictions; name a control that would separate competing causes. Absence is provisional while earlier work can still complete or become visible. A proposed remedy needs its own coordination, recovery, and compatibility evidence. Do not redesign or implement the plan as an implied follow-up.
 
 ## Output and stopping
 

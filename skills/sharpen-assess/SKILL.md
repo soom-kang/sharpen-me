@@ -1,7 +1,7 @@
 ---
 name: sharpen-assess
 license: MIT
-description: Recommend model capability, reasoning effort, and verification for a bounded task, assessing change risk separately. Use for execution budgeting or risk-and-effort assessment; unresolved request meaning belongs to sharpen-clarify and a plan's unproven mechanism to sharpen-challenge. Advise without changing settings or executing the task.
+description: "Recommend model capability, reasoning effort, and verification for a bounded task, assessing change risk separately. Use when asked which model or effort level fits a task, how risky a change is, or how much verification it needs (모델 선택, effort, 위험도, 검증 수준). Advise without changing settings or executing the task. Unresolved request meaning belongs to sharpen-clarify and a plan's unproven mechanism to sharpen-challenge."
 ---
 
 # Sharpen Assess

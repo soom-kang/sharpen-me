@@ -1,7 +1,7 @@
 ---
 name: sharpen-brief
 license: MIT
-description: Restore current project state, open blockers, and pending decisions after a gap or handoff. Use a verified baseline for changes since then, or a current snapshot when none exists. Routine progress updates need no briefing workflow; resolving a requirement or challenging a plan is a separate task.
+description: "Restore current project state, open blockers, and pending decisions after a gap or handoff, as a delta from a verified baseline or a current snapshot when none exists. Use for catching up, handoffs, resuming after time away, or \"where are we / what changed since\" (현황 파악, 인수인계, 어디까지 했는지, 그동안 바뀐 것). Routine progress or single test-status answers need no briefing; resolving a requirement or challenging a plan is a separate task."
 ---
 
 # Sharpen Brief

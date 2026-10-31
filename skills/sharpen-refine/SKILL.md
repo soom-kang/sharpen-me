@@ -1,7 +1,7 @@
 ---
 name: sharpen-refine
 license: MIT
-description: Make authorized behavior-preserving code improvements or source-backed technical documentation corrections, including commands and tables. Use sharpen-dedupe when equivalence or shared ownership across implementations must be decided. Pure wording or grammar work belongs to a writing skill; exclude feature work, behavior-changing fixes, and unrelated cleanup.
+description: "Make authorized behavior-preserving code improvements or source-backed technical documentation corrections, including commands and tables. Use to refactor, clean up, simplify, or extract a helper without changing behavior, or to correct outdated commands, versions, or tables in technical docs (리팩터링, 코드 정리, 단순화, 기술 문서 수정). Use sharpen-dedupe when equivalence or shared ownership across implementations must be decided. Pure wording or grammar work belongs to a writing skill; exclude feature work, behavior-changing fixes, and unrelated cleanup."
 ---
 
 # Sharpen Refine

@@ -1,7 +1,7 @@
 ---
 name: sharpen-cold-review
 license: MIT
-description: Independently review document comprehension or code correctness in a genuinely separate context. Use when the caller requests independence or supplies an isolated review assignment; ordinary same-context defect review belongs to sharpen-review. Establish isolation and the permitted evidence before reviewing; report not_run if isolation is unavailable.
+description: "Independently review document comprehension or code correctness in a genuinely separate context. Use when asked for a fresh-eyes, cold, blind, or independent review, a reviewer without the author's context, or whether a document stands on its own (독립 리뷰, 콜드 리뷰, 문서만 보고 이해되는지). Establish isolation and the permitted evidence before reviewing; report not_run if isolation is unavailable. Ordinary same-context defect review belongs to sharpen-review."
 ---
 
 # Sharpen Cold Review

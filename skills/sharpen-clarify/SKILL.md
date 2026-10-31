@@ -1,7 +1,7 @@
 ---
 name: sharpen-clarify
 license: MIT
-description: Resolve competing meanings of a development request when they change the target, behavior, compatibility, or authorized scope. Use repository evidence before asking the user. A clear but complex request needs no clarification; uncertainty about a plan's mechanism belongs to sharpen-challenge and execution budgeting to sharpen-assess.
+description: "Resolve competing meanings of a development request when they change the target, behavior, compatibility, or authorized scope, using repository evidence before asking the user. Use when a request is ambiguous, underspecified, or could mean different things (요구사항이 모호함, 무슨 뜻인지, 범위 확인). A clear but complex request needs no clarification; uncertainty about a plan's mechanism belongs to sharpen-challenge and execution budgeting to sharpen-assess."
 ---
 
 # Sharpen Clarify

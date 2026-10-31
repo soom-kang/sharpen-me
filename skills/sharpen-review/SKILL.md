@@ -1,7 +1,7 @@
 ---
 name: sharpen-review
 license: MIT
-description: Find supported defects and contract violations in a diff, pull request, implementation, or architecture design. Use sharpen-challenge for an unproven plan mechanism and sharpen-cold-review when a separate context is required or a cold-read assignment is supplied. Default to read-only review; fixes require authorization.
+description: "Find supported defects and contract violations in a diff, pull request, implementation, or architecture design. Use to review code, a PR, current changes, or a design for bugs, regressions, or spec violations (코드 리뷰, PR 리뷰, 버그 찾기, 설계 검토). Default to read-only review; fixes require authorization. Use sharpen-challenge for an unproven plan mechanism and sharpen-cold-review when a separate context is required or a cold-read assignment is supplied."
 ---
 
 # Sharpen Review
